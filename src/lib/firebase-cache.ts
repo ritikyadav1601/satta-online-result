@@ -6,7 +6,7 @@ import type {
   SK24ChartsData,
 } from "./types";
 
-import { adminDb } from "./firebase-admin";
+import { getAdminDb } from "./firebase-admin";
 
 const COLLECTION = "scraped_cache";
 
@@ -14,7 +14,7 @@ const COLLECTION = "scraped_cache";
 
 export async function getHomepageFromFirestore(): Promise<HomepageData | null> {
   try {
-    const snap = await adminDb.collection(COLLECTION).doc("homepage").get();
+    const snap = await getAdminDb().collection(COLLECTION).doc("homepage").get();
     if (!snap.exists) return null;
     const d = snap.data();
     return {
@@ -37,7 +37,7 @@ export async function getMonthlyChartFromFirestore(
 ): Promise<MonthlyChartData | null> {
   try {
     const docId = `chart_${month.toLowerCase()}_${year}`;
-    const snap = await adminDb.collection(COLLECTION).doc(docId).get();
+    const snap = await getAdminDb().collection(COLLECTION).doc(docId).get();
     if (!snap.exists) return null;
     const d = snap.data();
     return {
@@ -61,7 +61,7 @@ export async function getGameChartFromFirestore(
 ): Promise<GameChartData | null> {
   try {
     const docId = `game_${slug}_${(month || "current").toLowerCase()}_${year || "current"}`;
-    const snap = await adminDb.collection(COLLECTION).doc(docId).get();
+    const snap = await getAdminDb().collection(COLLECTION).doc(docId).get();
     if (!snap.exists) return null;
     const d = snap.data();
     return {
@@ -83,7 +83,7 @@ export async function getGameChartFromFirestore(
 
 export async function getSK24GamesFromFirestore(): Promise<SK24GamesData | null> {
   try {
-    const snap = await adminDb.collection(COLLECTION).doc("sk24_games").get();
+    const snap = await getAdminDb().collection(COLLECTION).doc("sk24_games").get();
     if (!snap.exists) return null;
     const d = snap.data();
     return {
@@ -100,7 +100,7 @@ export async function getSK24GamesFromFirestore(): Promise<SK24GamesData | null>
 
 export async function getSK24ChartsFromFirestore(): Promise<SK24ChartsData | null> {
   try {
-    const snap = await adminDb.collection(COLLECTION).doc("sk24_charts").get();
+    const snap = await getAdminDb().collection(COLLECTION).doc("sk24_charts").get();
     if (!snap.exists) return null;
     const d = snap.data();
     return {

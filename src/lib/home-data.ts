@@ -4,7 +4,7 @@ import {
   getSK24GamesFromFirestore,
   getSK24ChartsFromFirestore,
 } from "./firebase-cache";
-import { adminDb } from "./firebase-admin";
+import { getAdminDb } from "./firebase-admin";
 import { getISTDateString } from "./utils";
 import type {
   GameResult,
@@ -31,7 +31,7 @@ const CUSTOM_COLLECTION = "custom_games";
 // Read today's custom game values + khaiwal directly from Firestore (server-side).
 async function getCustomGamesForDate(date: string) {
   try {
-    const snap = await adminDb.collection(CUSTOM_COLLECTION).doc(date).get();
+    const snap = await getAdminDb().collection(CUSTOM_COLLECTION).doc(date).get();
     if (!snap.exists) return { games: {} as Record<string, string>, khaiwal: null };
     const d = snap.data() || {};
     return {

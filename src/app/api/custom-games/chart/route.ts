@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { adminDb } from "@/lib/firebase-admin";
+import { getAdminDb } from "@/lib/firebase-admin";
 
 const COLLECTION = "custom_games";
 
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     const startStr = `${year}-${String(month).padStart(2, "0")}-01`;
     const endStr = `${year}-${String(month).padStart(2, "0")}-${String(daysInMonth).padStart(2, "0")}`;
 
-    const snapshot = await adminDb
+    const snapshot = await getAdminDb()
       .collection(COLLECTION)
       .where("__name__", ">=", startStr)
       .where("__name__", "<=", endStr)

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { adminDb } from "@/lib/firebase-admin";
+import { getAdminDb } from "@/lib/firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 
 const COLLECTION = "custom_games";
@@ -29,12 +29,12 @@ export async function GET(req: NextRequest) {
 
       let snapshot;
       if (all) {
-        snapshot = await adminDb.collection(COLLECTION).get();
+        snapshot = await getAdminDb().collection(COLLECTION).get();
       } else {
         const daysInMonth = new Date(year, month, 0).getDate();
         const startStr = `${year}-${String(month).padStart(2, "0")}-01`;
         const endStr = `${year}-${String(month).padStart(2, "0")}-${String(daysInMonth).padStart(2, "0")}`;
-        snapshot = await adminDb
+        snapshot = await getAdminDb()
           .collection(COLLECTION)
           .where("__name__", ">=", startStr)
           .where("__name__", "<=", endStr)
@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
 
     // Single-date mode (homepage)
     const today = searchParams.get("date") || new Date().toISOString().slice(0, 10);
-    const snap = await adminDb.collection(COLLECTION).doc(today).get();
+    const snap = await getAdminDb().collection(COLLECTION).doc(today).get();
     const data = snap.data() || {};
 
     if (!snap.exists) {
@@ -142,7 +142,7 @@ if (!isAuthed(email, password)) {
 
 const targetDate = date || new Date().toISOString().slice(0, 10);
 
-const docRef = adminDb.collection(COLLECTION).doc(targetDate);
+const docRef = getAdminDb().collection(COLLECTION).doc(targetDate);
 const existing = await docRef.get();
 const existingData = existing.exists ? existing.data() || {} : {};
 
@@ -193,7 +193,7 @@ export async function PATCH(req: NextRequest) {
       return Response.json({ success: false, error: "date and game are required" }, { status: 400 });
     }
 
-    await adminDb
+    await getAdminDb()
       .collection(COLLECTION)
       .doc(date)
       .set({ [game]: String(value ?? "").trim(), updatedAt: Date.now() }, { merge: true });
@@ -220,7 +220,7 @@ export async function DELETE(req: NextRequest) {
       return Response.json({ success: false, error: "date and game are required" }, { status: 400 });
     }
 
-    await adminDb
+    await getAdminDb()
       .collection(COLLECTION)
       .doc(date)
       .update({ [game]: FieldValue.delete(), updatedAt: Date.now() });

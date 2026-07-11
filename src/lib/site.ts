@@ -1,4 +1,4 @@
-export const SITE_DOMAIN = "sattaonlineresult.com";
+export const SITE_DOMAIN = "www.sattaonlineresult.com";
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
   `https://${SITE_DOMAIN}`;

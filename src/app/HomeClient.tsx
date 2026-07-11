@@ -188,7 +188,7 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
   const section3GameNames = [
     "sadar bazar", "gwalior", "delhi bazar", "delhi matka",
     "shri ganesh", "agra", "faridabad", "alwar",
-    "gaziabad", "dwarka", "gali",
+    "gaziabad", "dwarka", "gali" ,"desawar",
   ];
   // Alternate name mappings for 3rd section
   const section3Aliases: Record<string, string[]> = {
@@ -247,7 +247,7 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
           </span>
         </div>
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-2">
-          A7 Satta {format(new Date(), "yyyy")}
+          Satta Online Result {format(new Date(), "yyyy")}
           <br className="md:hidden" />
           <span className="text-amber-400"> {t("लाइव रिजल्ट", "Live Results", lang)}</span>
         </h1>
@@ -308,7 +308,10 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
               lang={lang}
             />
 
-            {/* ─── 3RD SECTION: Specific Games ─── */}
+                {/* ─── 3TH SECTION: WhatsApp / Khaiwal ─── */}
+                <WhatsAppContactSection lang={lang} khaiwal={khaiwal} />
+
+            {/* ─── 4RD SECTION: Specific Games ─── */}
            <GameCardSection
               title={t("आज के A7 सट्टा रिजल्ट", "Today A7 Satta Results", lang)}
               subtitle={t("इंटरनेट पर सबसे तेज़ A7 सट्टा रिजल्ट", "Fastest A7 Satta result on internet", lang)}
@@ -320,8 +323,7 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
               lang={lang}
             />
 
-            {/* ─── 4TH SECTION: WhatsApp / Khaiwal ─── */}
-            <WhatsAppContactSection lang={lang} khaiwal={khaiwal} />
+        
 
             {/* SK24 Charts */}
             {sk24Charts.length > 0 && (

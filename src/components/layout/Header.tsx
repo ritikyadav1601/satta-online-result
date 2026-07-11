@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 
 const NAV_LINKS = [
@@ -14,6 +15,7 @@ const NAV_LINKS = [
 export function Header() {
   const pathname = usePathname();
   const { lang } = useLanguage();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   function isActive(href: string) {
     if (href === "/") return pathname === "/";
@@ -25,17 +27,17 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-3 md:px-4">
         <div className="flex items-center justify-between h-14 md:h-16">
           <Link href="/" className="flex items-center gap-2 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center font-black text-lg text-white shadow-md">
-              A7
-            </div>
+
             <span className="text-lg md:text-xl font-black tracking-tight">
-              <span className="text-white">A7</span>
-              <span className="text-amber-400">SATTA</span>
+              <span className="text-white">SATTA</span>
+              <span className="text-amber-400">ONLINE</span>
+              <span className="text-white">RESULT</span>
+
             </span>
           </Link>
 
-          {/* Nav links */}
-          <nav className="flex items-center gap-1">
+          {/* Desktop navigation */}
+          <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
             {NAV_LINKS.map((link) => {
               const active = isActive(link.href);
               return (
@@ -53,7 +55,52 @@ export function Header() {
               );
             })}
           </nav>
+
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen((open) => !open)}
+            className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-lg text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-amber-400"
+            aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={isMenuOpen}
+            aria-controls="mobile-navigation"
+          >
+            {isMenuOpen ? (
+              <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path strokeLinecap="round" d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path strokeLinecap="round" d="M4 7h16M4 12h16M4 17h16" />
+              </svg>
+            )}
+          </button>
         </div>
+
+        {isMenuOpen && (
+          <nav
+            id="mobile-navigation"
+            className="md:hidden border-t border-white/10 py-2"
+            aria-label="Mobile navigation"
+          >
+            {NAV_LINKS.map((link) => {
+              const active = isActive(link.href);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`block rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
+                    active
+                      ? "bg-amber-500 text-white"
+                      : "text-gray-200 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+        )}
       </div>
 
       {/* Yellow marquee bar */}

@@ -20,12 +20,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default:
-      "Satta Online Result | Live A7 Satta Result 2026 | Gali Desawar Faridabad Ghaziabad",
+    default: "Satta Online Result | Today's Satta King Result & Charts",
     template: `%s | ${SITE_NAME}`,
   },
-  description:
-    "SattaOnlineResult.com - Get superfast live A7 Satta results for Gali, Desawar, Ghaziabad, Faridabad, Shri Ganesh, Delhi Bazar & 100+ games. Monthly chart records. Updated daily.",
+  description: "Check today's Satta King Result, historical charts, and old records on SattaOnlineResult.com.",
   verification: {
     google: "iwfZBGPCqdL74ht1H9V0bVgdfHVKvW-qXETMj6c7_Uk",
   },
@@ -41,16 +39,25 @@ export const metadata: Metadata = {
     "satta king live",
     "live satta result",
     "satta online result",
-    "a7satta",
+    "satta chart",
+    "satta record",
+    "disawar result today",
+    "faridabad result today",
+    "ghaziabad result today",
   ],
   openGraph: {
     type: "website",
     locale: "en_IN",
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: "Satta Online Result | Live A7 Satta Result 2026",
+    title: "Satta Online Result | Today's Satta King Result & Charts",
     description:
-      "Superfast live A7 Satta results for Gali, Desawar, Ghaziabad, Faridabad & 100+ games.",
+      "Check today's Satta King Result, Gali, Desawar, Faridabad and Ghaziabad results, charts, and old records.",
+  },
+  twitter: {
+    card: "summary",
+    title: "Satta Online Result | Today's Satta King Result & Charts",
+    description: "Check today's Satta King Result, historical charts, and old records on SattaOnlineResult.com.",
   },
   robots: { index: true, follow: true },
   alternates: { canonical: SITE_URL },
@@ -70,7 +77,7 @@ export default function RootLayout({
         <LanguageProvider>
           <Header />
           <main className="flex-1">{children}</main>
-          {/* <Footer /> */}
+          <Footer />
           <WhatsAppButton />
         </LanguageProvider>
       </body>

@@ -87,19 +87,46 @@ function CardSkeleton() {
 // ─── Main Page ───
 
 export default function HomeClient({ initialData }: { initialData: HomeData }) {
-  // ✅ Data is fetched on the server and passed in as props — no client-side
-  // fetch waterfall, so everything is present on first paint.
-  const [liveResults] = useState<GameResult[]>(initialData.liveResults);
-  const [nextResults] = useState<GameResult[]>(initialData.nextResults);
-  const [restResults] = useState<GameResult[]>(initialData.restResults);
-  const [sk24Games] = useState<SK24Game[]>(initialData.sk24Games);
-  const [sk24Charts] = useState<SK24ChartTable[]>(initialData.sk24Charts);
-  const [monthlyChart] = useState<ChartRow[]>(initialData.monthlyChart);
-  const [monthlyChartMeta] = useState<{ month: string; year: string }>(initialData.monthlyChartMeta);
-  const [customGames] = useState<Record<string, string>>(initialData.customGames);
-  const [customGamesYesterday] = useState<Record<string, string>>(initialData.customGamesYesterday);
-  const [loading] = useState(false);
-  const [khaiwal] = useState<any>(initialData.khaiwal);
+  // Server data makes the first paint fast; this state is refreshed every 10s.
+  const [homeData, setHomeData] = useState<HomeData>(initialData);
+  const loading = false;
+  const {
+    liveResults,
+    nextResults,
+    restResults,
+    sk24Games,
+    sk24Charts,
+    monthlyChart,
+    monthlyChartMeta,
+    customGames,
+    customGamesYesterday,
+    khaiwal,
+  } = homeData;
+
+  useEffect(() => {
+    setHomeData(initialData);
+  }, [initialData]);
+
+  useEffect(() => {
+    let inFlight = false;
+
+    const refreshResults = async () => {
+      // Avoid overlapping reads if Firestore takes longer than the interval.
+      if (inFlight || document.visibilityState !== "visible") return;
+      inFlight = true;
+      try {
+        const response = await fetch("/api/home-data", { cache: "no-store" });
+        if (response.ok) setHomeData(await response.json());
+      } catch {
+        // Keep the most recently displayed result if a refresh request fails.
+      } finally {
+        inFlight = false;
+      }
+    };
+
+    const interval = window.setInterval(refreshResults, 10_000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   const containerRef = useScrollAnimation([loading]);
   const { lang } = useLanguage();
@@ -405,7 +432,7 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
         </div>
 
         {/* SEO */}
-        <SeoContent lang={lang} />
+        <SeoContent />
       </div>
     </div>
   );
@@ -978,69 +1005,198 @@ function MonthlyChartSection({
 
 // ─── SEO Content ───
 
-function SeoContent({ lang }: { lang: "hi" | "en" }) {
+function SeoContent() {
   return (
     <div className="sa opacity-0 translate-y-8 bg-gray-50 rounded-2xl border border-gray-200 p-5 md:p-8 space-y-4 text-sm text-gray-600 leading-relaxed">
       <h2 className="text-xl md:text-2xl font-black text-gray-900">
-        {t("A7 सट्टा और SattaOnlineResult.com के बारे में", "Understanding A7 Satta & SattaOnlineResult.com", lang)}
+        Satta Online Result – Fast & Accurate Satta King Result, Live Chart & Record
       </h2>
+
+      <h3 className="text-lg font-bold text-gray-900">Welcome</h3>
+
       <p>
-        {t(
-          "SattaOnlineResult.com इंटरनेट पर सबसे तेज़ और सबसे भरोसेमंद A7 सट्टा रिजल्ट प्रदान करने के लिए बनाया गया है। हमारा प्लेटफॉर्म आधिकारिक स्रोतों से सीधे डेटा लेता है और रियल-टाइम में अपडेट करता है।",
-          "SattaOnlineResult.com is designed to provide the fastest, most reliable A7 Satta results on the internet. Our platform pulls data directly from official sources and updates in real-time.",
-          lang
-        )}
+        Welcome to SattaOnlineResult.com, your trusted destination for the latest
+        Satta King Result, Satta Online Result, Gali Result, Desawar Result,
+        Faridabad Result, and Ghaziabad Result updates. Our website is designed
+        to provide fast, accurate, and easy-to-read result information along with
+        historical charts and records in one place.
       </p>
+
       <p>
-        {t(
-          "चाहे आप गली, देसावर, गाज़ियाबाद, फरीदाबाद, या 100+ क्षेत्रीय गेम्स में से कोई भी फॉलो करते हों, हम आपको तुरंत अपडेट और व्यापक चार्ट रिकॉर्ड प्रदान करते हैं।",
-          "Whether you follow Gali, Desawar, Ghaziabad, Faridabad, or any of the 100+ regional games, we have you covered with instant updates and comprehensive chart records.",
-          lang
-        )}
+        If you're searching for today's Satta King Result, Satta Chart, Satta
+        Record, Disawar Result Today, or old result history,
+        SattaOnlineResult.com offers a clean and organized experience. Every
+        section is updated regularly so visitors can quickly access the latest
+        available information without unnecessary distractions.
       </p>
 
       <h3 className="text-lg font-bold text-gray-900">
-        {t("SattaOnlineResult.com क्यों चुनें?", "Why Choose SattaOnlineResult.com?", lang)}
+        Why Choose SattaOnlineResult.com?
       </h3>
-      <ul className="list-none space-y-2 pl-0">
-        <li className="flex items-start gap-2">
-          <span className="text-green-600 font-bold mt-0.5">&#10003;</span>
-          <span>
-            <strong className="text-gray-900">{t("बिजली की तेज़ी:", "Lightning Fast:", lang)}</strong>{" "}
-            {t("रिजल्ट घोषित होते ही अपडेट।", "Results updated the moment they are declared.", lang)}
-          </span>
-        </li>
-        <li className="flex items-start gap-2">
-          <span className="text-green-600 font-bold mt-0.5">&#10003;</span>
-          <span>
-            <strong className="text-gray-900">{t("100+ गेम्स:", "100+ Games:", lang)}</strong>{" "}
-            {t("राष्ट्रीय और क्षेत्रीय बाजारों की पूरी कवरेज।", "Complete coverage of national and regional markets.", lang)}
-          </span>
-        </li>
-        <li className="flex items-start gap-2">
-          <span className="text-green-600 font-bold mt-0.5">&#10003;</span>
-          <span>
-            <strong className="text-gray-900">{t("चार्ट रिकॉर्ड:", "Chart Records:", lang)}</strong>{" "}
-            {t(`2015 से ${new Date().getFullYear()} तक का ऐतिहासिक डेटा।`, `Historical data from 2015 to ${new Date().getFullYear()}.`, lang)}
-          </span>
-        </li>
-        <li className="flex items-start gap-2">
-          <span className="text-green-600 font-bold mt-0.5">&#10003;</span>
-          <span>
-            <strong className="text-gray-900">{t("मोबाइल ऑप्टिमाइज़्ड:", "Mobile Optimized:", lang)}</strong>{" "}
-            {t("सबसे अच्छे मोबाइल अनुभव के लिए बनाया गया।", "Built for the best mobile experience.", lang)}
-          </span>
-        </li>
-      </ul>
 
-      <h3 className="text-lg font-bold text-gray-900">{t("अस्वीकरण", "Disclaimer", lang)}</h3>
+      <p>
+        At SattaOnlineResult.com, we focus on providing reliable result
+        information in a simple format. Visitors can easily check the latest
+        Satta King Result, browse previous records, and explore historical charts
+        without confusion.
+      </p>
+
+      <p>
+        Our website is regularly maintained to keep information well-organized
+        and easy to access. Whether you're looking for today's update or older
+        result history, everything is arranged for a smooth browsing experience.
+      </p>
+
+      <h3 className="text-lg font-bold text-gray-900">
+        Today's Satta King Result & Live Updates
+      </h3>
+
+      <p>
+        Finding the latest Satta King Result Today should be quick and simple.
+        That's why our homepage highlights the most searched result sections so
+        visitors can reach the information they need without searching multiple
+        websites.
+      </p>
+
+      <p>
+        We continuously update available result information, including Gali
+        Result Today, Desawar Result Today, Faridabad Result Today, Ghaziabad
+        Result Today, and other popular market results in an easy-to-read format.
+      </p>
+
+      <h3 className="text-lg font-bold text-gray-900">
+        Satta Chart & Old Record
+      </h3>
+
+      <p>
+        Our Satta Chart section helps visitors access previous records in a
+        structured and organized manner. Date-wise charts make it easier to
+        review historical result information whenever required.
+      </p>
+
+      <p>
+        From Gali Chart and Desawar Chart to Faridabad Chart, Ghaziabad Chart,
+        and old result records, every archive is arranged for convenient browsing
+        and quick access.
+      </p>
+
+      <h3 className="text-lg font-bold text-gray-900">
+        Popular Satta King Markets
+      </h3>
+
+      <p>
+        SattaOnlineResult.com provides organized updates for several well-known
+        markets that users frequently search online. Popular result sections are
+        displayed clearly, making navigation simple and convenient.
+      </p>
+
+      <p>
+        Visitors can quickly explore Gali Result, Desawar Result, Faridabad
+        Result, Ghaziabad Result, Delhi Result, related charts, and historical
+        records from one trusted platform.
+      </p>
+
+      <h3 className="text-lg font-bold text-gray-900">
+        Reliable Information & Regular Updates
+      </h3>
+
+      <p>
+        We understand the importance of timely information. Our team works to
+        keep result pages updated while maintaining a clean layout that makes
+        browsing simple for every visitor.
+      </p>
+
+      <p>
+        The website is built with a focus on clarity, consistency, and easy
+        navigation so users can find Satta Online Result, charts, and records
+        without unnecessary complexity.
+      </p>
+
+      <h3 className="text-lg font-bold text-gray-900">
+        A Trusted Source for Satta Online Result
+      </h3>
+
+      <p>
+        Our goal is to provide a dependable platform where visitors can easily
+        access Satta King Results, historical charts, and organized records. We
+        continuously improve the website to ensure a better browsing experience
+        for every user.
+      </p>
+
+      <p>
+        SattaOnlineResult.com values transparency, accuracy, and simplicity. By
+        keeping information well-structured and regularly updated, we aim to
+        become a trusted destination for users looking for Satta Online Result
+        information.
+      </p>
+
+      <h3 className="text-lg font-bold text-gray-900">
+        Frequently Asked Questions (FAQs)
+      </h3>
+
+      <div className="space-y-3">
+        <div>
+          <h4 className="font-bold text-gray-900">
+            What is SattaOnlineResult.com?
+          </h4>
+          <p>
+            SattaOnlineResult.com is an informational website that provides the
+            latest Satta King Results, charts, old records, and historical result
+            information in an organized format.
+          </p>
+        </div>
+
+        <div>
+          <h4 className="font-bold text-gray-900">
+            How often are Satta King Results updated?
+          </h4>
+          <p>
+            Result information is updated regularly whenever the latest publicly
+            available updates become available.
+          </p>
+        </div>
+
+        <div>
+          <h4 className="font-bold text-gray-900">
+            Can I check old Satta charts on this website?
+          </h4>
+          <p>
+            Yes. Visitors can browse historical charts, previous records, and
+            archived result information through dedicated chart sections.
+          </p>
+        </div>
+
+        <div>
+          <h4 className="font-bold text-gray-900">
+            Which Satta King markets are available?
+          </h4>
+          <p>
+            The website includes information related to popular markets such as
+            Gali, Desawar, Faridabad, Ghaziabad, Delhi, and other commonly
+            searched result sections.
+          </p>
+        </div>
+
+        <div>
+          <h4 className="font-bold text-gray-900">
+            Is SattaOnlineResult.com a trusted source?
+          </h4>
+          <p>
+            Our focus is on presenting organized, easy-to-read, and regularly
+            updated informational content to help visitors access result
+            information conveniently.
+          </p>
+        </div>
+      </div>
+
+      <h3 className="text-lg font-bold text-gray-900">Disclaimer</h3>
+
       <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-xs text-red-700">
-        <strong>{t("महत्वपूर्ण:", "Important:", lang)}</strong>{" "}
-        {t(
-          "SattaOnlineResult.com पूरी तरह से सूचनात्मक उद्देश्यों के लिए है। हम किसी भी जुआ संचालन का स्वामित्व, संचालन या सुविधा नहीं देते। कृपया अपने क्षेत्रीय कानूनों का पालन करें।",
-          "SattaOnlineResult.com is strictly for informational purposes. We do not own, operate, or facilitate any gambling operations. Please comply with your regional laws.",
-          lang
-        )}
+        <strong>Important:</strong> SattaOnlineResult.com is an informational
+        website only. We do not organize, operate, promote, or encourage
+        betting, gambling, or wagering activities. The information is published
+        solely for informational purposes. Users are responsible for complying
+        with applicable laws in their jurisdiction.
       </div>
     </div>
   );

@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   },
   description: "Check today's Satta King Result, historical charts, and old records on SattaOnlineResult.com.",
   verification: {
-    google: "iwfZBGPCqdL74ht1H9V0bVgdfHVKvW-qXETMj6c7_Uk",
+    google: "AohxLMXdaCXo6OnIsHiTf1HdPhdE1ataNaqfSVZRtSo",
   },
 
   keywords: [

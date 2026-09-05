@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BLOG_POSTS, formatBlogDate } from "@/lib/blog-data";
+import { formatBlogDate } from "@/lib/blog-data";
+import { getPublicBlogPosts } from "@/lib/blog-mongodb";
 import { SITE_DISPLAY_DOMAIN, SITE_NAME, SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -16,7 +17,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  const posts = await getPublicBlogPosts();
   return (
     <div className="bg-white min-h-screen">
       <div className="max-w-4xl mx-auto px-4 py-10 md:py-14">
@@ -35,12 +37,19 @@ export default function BlogPage() {
         </header>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
-          {BLOG_POSTS.map((post) => (
+          {posts.map((post) => (
             <Link
               key={post.slug}
               href={`/blog/${post.slug}`}
               className="group block rounded-2xl border border-gray-200 bg-white p-5 md:p-6 shadow-sm hover:shadow-md hover:border-amber-300 transition-all"
             >
+              {post.image && (
+                <img
+                  src={post.image}
+                  alt={post.title}
+                  className="mb-4 aspect-[16/9] w-full rounded-xl border border-yellow-100 object-cover"
+                />
+              )}
               <div className="flex flex-wrap items-center gap-2 mb-3">
                 {post.tags.slice(0, 2).map((tag) => (
                   <span

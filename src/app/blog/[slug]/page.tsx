@@ -2,15 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  BLOG_POSTS,
-  getPostBySlug,
   formatBlogDate,
   type Block,
 } from "@/lib/blog-data";
+import { getPublicBlogPost, getPublicBlogPosts } from "@/lib/blog-mongodb";
 import { SITE_DISPLAY_DOMAIN, SITE_NAME, SITE_URL } from "@/lib/site";
 
-export function generateStaticParams() {
-  return BLOG_POSTS.map((post) => ({ slug: post.slug }));
+export async function generateStaticParams() {
+  return (await getPublicBlogPosts()).map((post) => ({ slug: post.slug }));
 }
 
 export async function generateMetadata({
@@ -19,7 +18,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPublicBlogPost(slug);
 
   if (!post) {
     return { title: "Blog Not Found" };
@@ -124,6 +123,8 @@ function renderBlock(block: Block, index: number) {
           <p className="text-sm md:text-base text-green-800">{linkify(block.text)}</p>
         </div>
       );
+    case "html":
+      return <div key={index} className="prose prose-slate max-w-none [&_blockquote]:border-l-4 [&_blockquote]:border-yellow-300 [&_blockquote]:pl-4 [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-bold [&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-bold [&_ol]:list-decimal [&_ol]:pl-6 [&_ul]:list-disc [&_ul]:pl-6" dangerouslySetInnerHTML={{ __html: block.html }} />;
     default:
       return null;
   }
@@ -135,7 +136,7 @@ export default async function BlogDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPublicBlogPost(slug);
 
   if (!post) {
     notFound();
@@ -201,6 +202,8 @@ export default async function BlogDetailPage({
             <span>{post.readTime}</span>
           </div>
         </header>
+
+        {post.image && <img src={post.image} alt={post.title} className="mb-8 max-h-[460px] w-full rounded-2xl object-cover" />}
 
         {/* Body */}
         <div className="border-t border-gray-100 pt-6">

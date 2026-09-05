@@ -1,8 +1,7 @@
-import { MongoClient, ObjectId } from "mongodb";
+import { ObjectId } from "mongodb";
 import { getISTDateString } from "./utils";
-import type { SK24Game } from "./types";
-
-const databaseName = process.env.TOP_GAMES_MONGODB_DATABASE || "test";
+import { getTopGamesDatabase } from "./top-games-database";
+import type { ChartRow, MonthlyChartData, SK24Game } from "./types";
 
 const topGameDefinitions = [
   { name: "SADAR BAZAR", time: "01:39 PM", aliases: ["sadar bazar"] },
@@ -32,10 +31,6 @@ type ResultDocument = {
   updatedAt?: Date | string | number;
 };
 
-declare global {
-  var topGamesMongoClientPromise: Promise<MongoClient> | undefined;
-}
-
 function normalizeName(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
@@ -56,15 +51,8 @@ function currentIstMinutes(date = new Date()) {
   return Number(values.hour) * 60 + Number(values.minute);
 }
 
-async function getDatabase() {
-  const uri = process.env.TOP_GAMES_MONGODB_URI?.trim();
-  if (!uri) throw new Error("TOP_GAMES_MONGODB_URI is not configured.");
-  global.topGamesMongoClientPromise ||= new MongoClient(uri).connect();
-  return (await global.topGamesMongoClientPromise).db(databaseName);
-}
-
 export async function getTopGamesFromMongoDB(): Promise<SK24Game[]> {
-  const database = await getDatabase();
+  const database = await getTopGamesDatabase();
   const games = await database
     .collection<GameDocument>("games")
     .find({ isActive: { $ne: false } })
@@ -99,7 +87,7 @@ export async function getTopGamesFromMongoDB(): Promise<SK24Game[]> {
     ]),
   );
 
-  return selectedGames.map(({ definition, game }) => {
+  const response = selectedGames.map(({ definition, game }) => {
     const previousResult = game
       ? resultByGameAndDate.get(`${String(game._id)}:${yesterday}`)
       : undefined;
@@ -117,4 +105,69 @@ export async function getTopGamesFromMongoDB(): Promise<SK24Game[]> {
         : null,
     };
   });
+  return response;
+}
+
+const monthlyGameDefinitions = [
+  { key: "dlbz", aliases: ["delhi bazar"] },
+  { key: "srgn", aliases: ["shri ganesh"] },
+  { key: "frbd", aliases: ["faridabad", "fridabad"] },
+  { key: "gzbd", aliases: ["gaziabad", "ghaziabad"] },
+  { key: "gali", aliases: ["gali"] },
+  { key: "dswr", aliases: ["desawar", "desawer", "disawar"] },
+] as const;
+
+export async function getMonthlyChartFromTopGames(
+  monthName: string,
+  year: string,
+): Promise<MonthlyChartData> {
+  const monthIndex = new Date(`${monthName} 1, ${year}`).getMonth();
+  if (Number.isNaN(monthIndex)) throw new Error("Invalid month.");
+
+  const database = await getTopGamesDatabase();
+  const games = await database
+    .collection<GameDocument>("games")
+    .find({ isActive: { $ne: false } })
+    .toArray();
+  const byName = new Map(games.map((game) => [normalizeName(String(game.name || "")), game]));
+  const selected = monthlyGameDefinitions.map((definition) => ({
+    definition,
+    game: definition.aliases.map(normalizeName).map((alias) => byName.get(alias)).find(Boolean),
+  }));
+  const ids = selected.flatMap(({ game }) => game ? [game._id] : []);
+  const month = String(monthIndex + 1).padStart(2, "0");
+  const daysInMonth = new Date(Number(year), monthIndex + 1, 0).getDate();
+  const todayIst = getISTDateString();
+  const selectedMonthKey = `${year}-${month}`;
+  const currentMonthKey = todayIst.slice(0, 7);
+  // Past months show their complete history. The current month stops at today,
+  // and a future month has no result rows yet.
+  const visibleDays =
+    selectedMonthKey < currentMonthKey
+      ? daysInMonth
+      : selectedMonthKey === currentMonthKey
+        ? Number(todayIst.slice(8, 10))
+        : 0;
+  const start = `${year}-${month}-01`;
+  const end = `${year}-${month}-${String(visibleDays).padStart(2, "0")}`;
+  const results = ids.length
+    ? await database.collection<ResultDocument>("gameresults")
+        .find({ game: { $in: ids }, resultDate: { $gte: start, $lte: end } })
+        .sort({ updatedAt: 1 })
+        .toArray()
+    : [];
+  const resultMap = new Map(results.map((result) => [`${String(result.game)}:${result.resultDate}`, cleanResult(result.result)]));
+
+  const rows: ChartRow[] = Array.from({ length: visibleDays }, (_, index) => {
+    const day = String(index + 1).padStart(2, "0");
+    const resultDate = `${year}-${month}-${day}`;
+    const row: ChartRow = { date: day, dlbz: "XX", srgn: "XX", frbd: "XX", gzbd: "XX", gali: "XX", dswr: "XX" };
+    selected.forEach(({ definition, game }) => {
+      if (game) row[definition.key] = resultMap.get(`${String(game._id)}:${resultDate}`) || "XX";
+    });
+    return row;
+  });
+
+  const response = { month: monthName, year, results: rows, scrapedAt: Date.now() };
+  return response;
 }

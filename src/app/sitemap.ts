@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
 import {
-  getHomepageFromFirestore,
-  getSK24GamesFromFirestore,
-} from "@/lib/firebase-cache";
+  getHomepageFromMongoDB,
+  getSK24GamesFromMongoDB,
+} from "@/lib/mongodb-cache";
 import { BLOG_POSTS } from "@/lib/blog-data";
+import { getPublicBlogPosts } from "@/lib/blog-mongodb";
 import { SITE_URL } from "@/lib/site";
 
 // Refresh the sitemap at most every hour.
@@ -14,7 +15,7 @@ function toSlug(name: string): string {
   return name.toLowerCase().trim().replace(/\s+/g, "-");
 }
 
-// Games that always exist on the homepage, regardless of what Firestore returns.
+// Games that always exist on the homepage, regardless of what MongoDB returns.
 const FIXED_GAME_NAMES = [
   // Top 9
   "KOHLAPUR", "MANIPUR", "UP BAZAR", "PALWAL CITY", "FRIDABAD",
@@ -40,7 +41,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // ─── Blog posts ───
-  const blogRoutes: MetadataRoute.Sitemap = BLOG_POSTS.map((post) => ({
+  const blogPosts = await getPublicBlogPosts().catch(() => BLOG_POSTS);
+  const blogRoutes: MetadataRoute.Sitemap = blogPosts.map((post) => ({
     url: `${SITE_URL}/blog/${post.slug}`,
     lastModified: post.date ? new Date(post.date) : now,
     changeFrequency: "monthly",
@@ -48,15 +50,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // ─── Chart pages (one per game) ───
-  // Pull live game names from Firestore, then merge with the fixed lists so the
+  // Pull live game names from MongoDB, then merge with the fixed lists so the
   // sitemap is complete even if the cache is momentarily empty.
   const slugs = new Set<string>();
   FIXED_GAME_NAMES.forEach((n) => slugs.add(toSlug(n)));
 
   try {
     const [homepage, sk24] = await Promise.all([
-      getHomepageFromFirestore(),
-      getSK24GamesFromFirestore(),
+      getHomepageFromMongoDB(),
+      getSK24GamesFromMongoDB(),
     ]);
 
     [

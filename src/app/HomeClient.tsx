@@ -3,7 +3,14 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { FiClock, FiTrendingUp, FiZap, FiBarChart2, FiCalendar, FiChevronDown } from "react-icons/fi";
+import {
+  FiClock,
+  FiTrendingUp,
+  FiZap,
+  FiBarChart2,
+  FiCalendar,
+  FiChevronDown,
+} from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 import { useLanguage, t } from "@/context/LanguageContext";
 import type { HomeData } from "@/lib/home-data";
@@ -107,7 +114,9 @@ function currentIstMinutes(date = new Date()) {
     minute: "2-digit",
     hourCycle: "h23",
   }).formatToParts(date);
-  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const values = Object.fromEntries(
+    parts.map((part) => [part.type, part.value]),
+  );
   return Number(values.hour) * 60 + Number(values.minute);
 }
 
@@ -120,8 +129,12 @@ function isSpotlightGame(game: GameResult | SK24Game) {
 }
 
 function allHomepageGames(data: HomeData): (GameResult | SK24Game)[] {
-  return [...data.liveResults, ...data.nextResults, ...data.restResults, ...data.sk24Games]
-    .filter(isSpotlightGame);
+  return [
+    ...data.liveResults,
+    ...data.nextResults,
+    ...data.restResults,
+    ...data.sk24Games,
+  ].filter(isSpotlightGame);
 }
 
 // ─── Scroll Animation ───
@@ -138,10 +151,11 @@ function useScrollAnimation(deps: unknown[] = []) {
           }
         });
       },
-      { threshold: 0.08, rootMargin: "0px 0px -30px 0px" }
+      { threshold: 0.08, rootMargin: "0px 0px -30px 0px" },
     );
     const el = ref.current;
-    if (el) el.querySelectorAll(".sa").forEach((item) => observer.observe(item));
+    if (el)
+      el.querySelectorAll(".sa").forEach((item) => observer.observe(item));
     return () => observer.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
@@ -154,7 +168,10 @@ function CardSkeleton() {
   return (
     <div className="space-y-2.5">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="bg-gray-100 rounded-2xl px-4 py-4 flex items-center gap-4">
+        <div
+          key={i}
+          className="bg-gray-100 rounded-2xl px-4 py-4 flex items-center gap-4"
+        >
           <div className="flex-1">
             <div className="skeleton h-4 w-28 mb-1.5" />
             <div className="skeleton h-3 w-16" />
@@ -199,7 +216,7 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
     let inFlight = false;
 
     const refreshResults = async () => {
-      // Avoid overlapping reads if Firestore takes longer than the interval.
+      // Avoid overlapping reads if MongoDB takes longer than the interval.
       if (inFlight || document.visibilityState !== "visible") return;
       inFlight = true;
       try {
@@ -207,11 +224,18 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
         if (response.ok) {
           const nextData = (await response.json()) as HomeData;
           const previousResults = new Map(
-            allHomepageGames(dataRef.current).map((game) => [resultKey(game), game.today])
+            allHomepageGames(dataRef.current).map((game) => [
+              resultKey(game),
+              game.today,
+            ]),
           );
           const changedResult = allHomepageGames(nextData).find((game) => {
             const previous = previousResults.get(resultKey(game));
-            return isDeclaredResult(game.today) && previous !== undefined && previous !== game.today;
+            return (
+              isDeclaredResult(game.today) &&
+              previous !== undefined &&
+              previous !== game.today
+            );
           });
 
           if (changedResult) {
@@ -235,7 +259,8 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
   const containerRef = useScrollAnimation([loading]);
   const { lang } = useLanguage();
 
-  const updatedAt = format(new Date(resultsUpdatedAt), "dd MMMM yyyy, hh:mm a") + " IST";
+  const updatedAt =
+    format(new Date(resultsUpdatedAt), "dd MMMM yyyy, hh:mm a") + " IST";
 
   // Games to hide from all sections
   const hiddenGames = new Set([
@@ -260,30 +285,101 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(new Date()).replace(/-/g, "");
+  })
+    .format(new Date())
+    .replace(/-/g, "");
   const ds = parseInt(daySeed, 10);
 
   // ─── 1ST SECTION: Fixed 9 games ───
   const topGameDefs = [
-    { name: "KOHLAPUR", time: "1:30 PM", seedOffset: 1, customKey: "kohlapur", aliases: [] as string[] },
-    { name: "MANIPUR", time: "2:30 PM", seedOffset: 3, customKey: "manipur", aliases: [] },
-    { name: "UP BAZAR", time: "3:30 PM", seedOffset: 5, customKey: "up-bazar", aliases: ["upbazar"] },
-    { name: "PALWAL CITY", time: "4:30 PM", seedOffset: 7, customKey: "palwal-city", aliases: [] },
-    { name: "FRIDABAD", time: "5:45 PM", seedOffset: 11, customKey: "", aliases: ["faridabad", "frbd"] },
-    { name: "MATHURA CITY", time: "6:50 PM", seedOffset: 9, customKey: "mathura-city", aliases: [] },
-    { name: "GAZIABAD", time: "9:20 PM", seedOffset: 13, customKey: "", aliases: ["ghaziabad", "gzbd"] },
-    { name: "GALI", time: "11:20 PM", seedOffset: 15, customKey: "", aliases: [] },
-    { name: "DISAWAR", time: "1:30 AM", seedOffset: 17, customKey: "", aliases: ["desawar", "desawer", "dswr"] },
+    {
+      name: "KOHLAPUR",
+      time: "1:30 PM",
+      seedOffset: 1,
+      customKey: "kohlapur",
+      aliases: [] as string[],
+    },
+    {
+      name: "MANIPUR",
+      time: "2:30 PM",
+      seedOffset: 3,
+      customKey: "manipur",
+      aliases: [],
+    },
+    {
+      name: "UP BAZAR",
+      time: "3:30 PM",
+      seedOffset: 5,
+      customKey: "up-bazar",
+      aliases: ["upbazar"],
+    },
+    {
+      name: "PALWAL CITY",
+      time: "4:30 PM",
+      seedOffset: 7,
+      customKey: "palwal-city",
+      aliases: [],
+    },
+    {
+      name: "FRIDABAD",
+      time: "5:45 PM",
+      seedOffset: 11,
+      customKey: "",
+      aliases: ["faridabad", "frbd"],
+    },
+    {
+      name: "MATHURA CITY",
+      time: "6:50 PM",
+      seedOffset: 9,
+      customKey: "mathura-city",
+      aliases: [],
+    },
+    {
+      name: "GAZIABAD",
+      time: "9:20 PM",
+      seedOffset: 13,
+      customKey: "",
+      aliases: ["ghaziabad", "gzbd"],
+    },
+    {
+      name: "GALI",
+      time: "11:20 PM",
+      seedOffset: 15,
+      customKey: "",
+      aliases: [],
+    },
+    {
+      name: "DISAWAR",
+      time: "1:30 AM",
+      seedOffset: 17,
+      customKey: "",
+      aliases: ["desawar", "desawer", "dswr"],
+    },
   ];
 
-  const allApiGames = [...liveResults, ...nextResults, ...restResults, ...sk24Games];
-  const topGames: SK24Game[] = topGameDefs.map(def => {
+  const allApiGames = [
+    ...liveResults,
+    ...nextResults,
+    ...restResults,
+    ...sk24Games,
+  ];
+  const externalGames = Array.from(
+    new Map(
+      allApiGames
+        .filter((game) => game?.name)
+        .map((game) => [
+          game.name.toLowerCase().replace(/[^a-z0-9]/g, ""),
+          game,
+        ]),
+    ).values(),
+  );
+  const topGames: SK24Game[] = topGameDefs.map((def) => {
     const norm = def.name.toLowerCase().replace(/\s+/g, "");
     const allNames = [norm, ...def.aliases];
     // Match scraped data (by name or aliases) for fallback values
-    const existing = allApiGames.find(g => {
+    const existing = allApiGames.find((g) => {
       const gn = g.name.toLowerCase().replace(/\s+/g, "");
-      return allNames.some(n => n === gn);
+      return allNames.some((n) => n === gn);
     });
     // Yesterday column: prefer the admin value saved for yesterday's date
     // (so today's declared result rolls into the Yesterday column at midnight IST),
@@ -294,7 +390,7 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
       existing?.yesterday ||
       seedFallback;
 
-    // Admin custom value (Firebase) takes priority when set for today
+    // Admin custom value from MongoDB takes priority when set for today
     if (def.customKey && customGames[def.customKey]) {
       return {
         name: def.name,
@@ -304,7 +400,12 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
       };
     }
     if (existing) {
-      return { name: def.name, time: def.time, yesterday: yesterdayVal, today: existing.today };
+      return {
+        name: def.name,
+        time: def.time,
+        yesterday: yesterdayVal,
+        today: existing.today,
+      };
     }
     // No data available - show XX
     return {
@@ -317,28 +418,38 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
 
   // ─── 3RD SECTION: Specific games ───
   const section3GameNames = [
-    "sadar bazar", "gwalior", "delhi bazar", "delhi matka",
-    "shri ganesh", "agra", "faridabad", "alwar",
-    "gaziabad", "dwarka", "gali" ,"desawar",
+    "sadar bazar",
+    "gwalior",
+    "delhi bazar",
+    "delhi matka",
+    "shri ganesh",
+    "agra",
+    "faridabad",
+    "alwar",
+    "gaziabad",
+    "dwarka",
+    "gali",
+    "desawar",
   ];
   // Alternate name mappings for 3rd section
   const section3Aliases: Record<string, string[]> = {
-    "faridabad": ["fridabad", "frbd"],
-    "gaziabad": ["ghaziabad", "gzbd"],
+    faridabad: ["fridabad", "frbd"],
+    gaziabad: ["ghaziabad", "gzbd"],
     "delhi bazar": ["delhibazar", "dlbz"],
     "shri ganesh": ["shriganesh", "srgn"],
   };
-  const fallbackSection3Games: SK24Game[] = section3GameNames.map(name => {
+  const fallbackSection3Games: SK24Game[] = section3GameNames.map((name) => {
     const norm = name.toLowerCase().replace(/\s+/g, "");
     const aliases = section3Aliases[name.toLowerCase()] || [];
     const allNames = [norm, ...aliases];
-    const existing = allApiGames.find(g => {
+    const existing = allApiGames.find((g) => {
       const gn = g.name.toLowerCase().replace(/\s+/g, "");
-      return allNames.some(n => n === gn);
+      return allNames.some((n) => n === gn);
     });
     if (existing) {
       const scheduledTime =
-        SPOTLIGHT_SCHEDULE.find((game) => resultKey(game as SK24Game) === name)?.time || "";
+        SPOTLIGHT_SCHEDULE.find((game) => resultKey(game as SK24Game) === name)
+          ?.time || "";
       const time = existing.time || scheduledTime;
       return {
         name: name.toUpperCase(),
@@ -349,12 +460,19 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
       };
     }
     const scheduledTime =
-      SPOTLIGHT_SCHEDULE.find((game) => resultKey(game as SK24Game) === name)?.time || "";
-    return { name: name.toUpperCase(), time: scheduledTime, yesterday: "XX", today: "XX" };
+      SPOTLIGHT_SCHEDULE.find((game) => resultKey(game as SK24Game) === name)
+        ?.time || "";
+    return {
+      name: name.toUpperCase(),
+      time: scheduledTime,
+      yesterday: "XX",
+      today: "XX",
+    };
   });
-  const section3Games = mongoTopGames.length === SPOTLIGHT_SCHEDULE.length
-    ? mongoTopGames
-    : fallbackSection3Games;
+  const section3Games =
+    mongoTopGames.length === SPOTLIGHT_SCHEDULE.length
+      ? mongoTopGames
+      : fallbackSection3Games;
 
   // Match the reference site's spotlight logic: choose the next still-pending
   // game by IST schedule, and choose the most recently saved declared result.
@@ -364,7 +482,8 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
   const nowIst = currentIstMinutes();
   const nextPending =
     gamesByTime.find(
-      (game) => timeToMinutes(game.time) > nowIst && !isDeclaredResult(game.today),
+      (game) =>
+        timeToMinutes(game.time) > nowIst && !isDeclaredResult(game.today),
     ) || gamesByTime.find((game) => !isDeclaredResult(game.today));
   const recentCandidates = section3Games.filter((game) =>
     isDeclaredResult(game.today),
@@ -372,11 +491,15 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
   const declaredResult =
     [...recentCandidates].sort(
       (a, b) =>
-        new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime(),
+        new Date(b.updatedAt || 0).getTime() -
+        new Date(a.updatedAt || 0).getTime(),
     )[0] ||
-    gamesByTime.filter(
-      (game) => timeToMinutes(game.time) <= nowIst && isDeclaredResult(game.today),
-    ).at(-1) ||
+    gamesByTime
+      .filter(
+        (game) =>
+          timeToMinutes(game.time) <= nowIst && isDeclaredResult(game.today),
+      )
+      .at(-1) ||
     null;
   const firstScheduledGame = gamesByTime[0] || null;
   const upcomingResult = nextPending
@@ -384,25 +507,6 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
     : firstScheduledGame
       ? { ...firstScheduledGame, today: "XX" }
       : null;
-
-  // Filter remaining games: exclude top 9 games and 3rd section games from other sections
-  const allFixedNames = new Set<string>();
-  topGameDefs.forEach(g => {
-    allFixedNames.add(g.name.toLowerCase().replace(/\s+/g, ""));
-    g.aliases.forEach(a => allFixedNames.add(a));
-  });
-  section3GameNames.forEach(n => {
-    allFixedNames.add(n.toLowerCase().replace(/\s+/g, ""));
-    const aliases = section3Aliases[n.toLowerCase()] || [];
-    aliases.forEach(a => allFixedNames.add(a));
-  });
-  const isInFixedList = (name: string) => {
-    const n = name.toLowerCase().replace(/\s+/g, "");
-    return allFixedNames.has(n);
-  };
-  const filteredLive = liveResults.filter(g => !isInFixedList(g.name) && !isHidden(g.name));
-  const filteredNext = nextResults.filter(g => !isInFixedList(g.name) && !isHidden(g.name));
-  const filteredRest = restResults.filter(g => !isInFixedList(g.name) && !isHidden(g.name));
 
   return (
     <div ref={containerRef} className="bg-[#fffdf2]">
@@ -416,26 +520,37 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-2">
           Satta Online Result {format(new Date(), "yyyy")}
           <br className="md:hidden" />
-          <span className="inline-block rounded-lg bg-black px-2 text-yellow-100"> {t("लाइव रिजल्ट", "Live Results", lang)}</span>
+          <span className="inline-block rounded-lg bg-black px-2 text-yellow-100">
+            {" "}
+            {t("लाइव रिजल्ट", "Live Results", lang)}
+          </span>
         </h1>
         <p className="text-neutral-800 font-medium text-sm md:text-base max-w-2xl mx-auto">
           {t(
             "सबसे तेज़ A7 सट्टा रिजल्ट अपडेट। गली, देसावर, गाज़ियाबाद, फरीदाबाद और 100+ गेम्स।",
             "Fastest A7 Satta result updates. Gali, Desawar, Ghaziabad, Faridabad & 100+ games.",
-            lang
+            lang,
           )}
         </p>
         <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto text-left">
           <ResultSpotlightCard
             label={t("आने वाला रिजल्ट", "Upcoming Result", lang)}
             game={upcomingResult}
-            emptyText={t("अगला गेम जल्द दिखेगा", "Next game will appear soon", lang)}
+            emptyText={t(
+              "अगला गेम जल्द दिखेगा",
+              "Next game will appear soon",
+              lang,
+            )}
             tone="upcoming"
           />
           <ResultSpotlightCard
             label={t("घोषित रिजल्ट", "Declared Result", lang)}
             game={declaredResult}
-            emptyText={t("पहले घोषित रिजल्ट का इंतज़ार", "Waiting for the first declared result", lang)}
+            emptyText={t(
+              "पहले घोषित रिजल्ट का इंतज़ार",
+              "Waiting for the first declared result",
+              lang,
+            )}
             tone="recent"
           />
         </div>
@@ -448,20 +563,24 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
       {/* Disclaimer */}
       <div className="bg-yellow-100 border-b border-yellow-300 py-1.5 px-2 md:px-4">
         <p className="text-center text-[11px] md:text-xs text-gray-500 max-w-4xl mx-auto">
-          <span className="font-bold text-red-500">{t("अस्वीकरण", "DISCLAIMER", lang)}:</span>{" "}
+          <span className="font-bold text-red-500">
+            {t("अस्वीकरण", "DISCLAIMER", lang)}:
+          </span>{" "}
           {t(
             "SattaOnlineResult.com एक स्वतंत्र सूचनात्मक वेबसाइट है। हम जुआ या सट्टेबाजी को बढ़ावा नहीं देते।",
             "SattaOnlineResult.com is an independent informational website. We do not promote gambling or betting.",
-            lang
+            lang,
           )}{" "}
-          <Link href="/disclaimer" className="text-yellow-700 hover:underline font-bold">
+          <Link
+            href="/disclaimer"
+            className="text-yellow-700 hover:underline font-bold"
+          >
             {t("पूरा अस्वीकरण पढ़ें", "Read Full Disclaimer", lang)}
           </Link>
         </p>
       </div>
 
       <div className="max-w-[1400px] mx-auto px-2 sm:px-3 md:px-6 py-5 md:py-8 space-y-8 md:space-y-10">
-
         {loading ? (
           <div className="space-y-10">
             <CardSkeleton />
@@ -472,7 +591,11 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
             {/* ─── 1ST SECTION: Top 9 Games ─── */}
             <GameCardSection
               title={t("अन्य गेम रिजल्ट", "Top Game Results", lang)}
-              subtitle={t("सदर बाज़ार, ग्वालियर, दिल्ली बाज़ार और अन्य", "Sadar Bazar, Gwalior, Delhi Bazar & more", lang)}
+              subtitle={t(
+                "सदर बाज़ार, ग्वालियर, दिल्ली बाज़ार और अन्य",
+                "Sadar Bazar, Gwalior, Delhi Bazar & more",
+                lang,
+              )}
               icon={<FiBarChart2 size={18} />}
               headerBg="bg-yellow-400"
               accentColor="text-yellow-700"
@@ -489,67 +612,30 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
               lang={lang}
             />
 
-                {/* ─── 3TH SECTION: WhatsApp / Khaiwal ─── */}
-                <WhatsAppContactSection lang={lang} khaiwal={khaiwal} />
+            {/* ─── 3TH SECTION: WhatsApp / Khaiwal ─── */}
+            <WhatsAppContactSection lang={lang} khaiwal={khaiwal} />
 
             {/* ─── 4RD SECTION: Specific Games ─── */}
-           <GameCardSection
-              title={t("आज के A7 सट्टा रिजल्ट", "Other Satta Results", lang)}
-              subtitle={t("इंटरनेट पर सबसे तेज़ A7 सट्टा रिजल्ट", "Fastest A7 Satta result on internet", lang)}
+            <GameCardSection
+              title={t("एक्सटर्नल सट्टा रिजल्ट", "External Satta Results", lang)}
+              subtitle={t(
+                "इंटरनेट पर सबसे तेज़ A7 सट्टा रिजल्ट",
+                "All games from the external result feed",
+                lang,
+              )}
               icon={<FiZap size={18} />}
               headerBg="bg-yellow-400"
               accentColor="text-yellow-700"
-              games={topGames}
+              games={externalGames}
               isLive
               lang={lang}
             />
-
-        
 
             {/* SK24 Charts */}
             {sk24Charts.length > 0 && (
               <SK24ChartsSection tables={sk24Charts} lang={lang} />
             )}
 
-            {/* LIVE (remaining) */}
-            {filteredLive.length > 0 && (
-              <GameCardSection
-                title={t("लाइव रिजल्ट", "LIVE Results", lang)}
-                subtitle={t("अभी जारी हो रहे गेम्स", "Games currently being declared", lang)}
-                icon={<FiZap size={18} />}
-                headerBg="bg-red-600"
-                accentColor="text-red-600"
-                games={filteredLive}
-                isLive
-                lang={lang}
-              />
-            )}
-
-            {/* UPCOMING (remaining) */}
-            {filteredNext.length > 0 && (
-              <GameCardSection
-                title={t("आने वाले रिजल्ट", "Upcoming Results", lang)}
-                subtitle={t("ये गेम्स जल्द जारी होंगे", "These games will be declared soon", lang)}
-                icon={<FiClock size={18} />}
-                headerBg="bg-amber-600"
-                accentColor="text-amber-600"
-                games={filteredNext}
-                lang={lang}
-              />
-            )}
-
-            {/* DECLARED (remaining) */}
-            {filteredRest.length > 0 && (
-              <GameCardSection
-                title={t("घोषित रिजल्ट", "Declared Results", lang)}
-                subtitle={t("आज के पूरे हुए गेम रिजल्ट", "Today's completed game results", lang)}
-                icon={<FiTrendingUp size={18} />}
-                headerBg="bg-emerald-600"
-                accentColor="text-emerald-600"
-                games={filteredRest}
-                lang={lang}
-              />
-            )}
           </>
         )}
 
@@ -557,20 +643,37 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
         <div className="sa opacity-0 translate-y-8 bg-yellow-50 rounded-2xl border-2 border-yellow-300 p-5 md:p-8 space-y-3 text-sm text-gray-700 leading-relaxed">
           <p>
             {t(
-              <>
-                <strong className="text-gray-900">SattaOnlineResult.com</strong> में आपका स्वागत है - लाइव <strong className="text-gray-900">A7 सट्टा रिजल्ट</strong> ट्रैक करने का सबसे अच्छा प्लेटफॉर्म। हमारा सिस्टम रिजल्ट घोषित होते ही तुरंत अपडेट करता है।
-              </> as unknown as string,
-              <>
-                Welcome to <strong className="text-gray-900">SattaOnlineResult.com</strong> - the ultimate platform for tracking live <strong className="text-gray-900">A7 Satta results</strong>. Our infrastructure delivers results the exact moment they are declared.
-              </> as unknown as string,
-              lang
+              (
+                <>
+                  <strong className="text-gray-900">
+                    SattaOnlineResult.com
+                  </strong>{" "}
+                  में आपका स्वागत है - लाइव{" "}
+                  <strong className="text-gray-900">A7 सट्टा रिजल्ट</strong>{" "}
+                  ट्रैक करने का सबसे अच्छा प्लेटफॉर्म। हमारा सिस्टम रिजल्ट घोषित
+                  होते ही तुरंत अपडेट करता है।
+                </>
+              ) as unknown as string,
+              (
+                <>
+                  Welcome to{" "}
+                  <strong className="text-gray-900">
+                    SattaOnlineResult.com
+                  </strong>{" "}
+                  - the ultimate platform for tracking live{" "}
+                  <strong className="text-gray-900">A7 Satta results</strong>.
+                  Our infrastructure delivers results the exact moment they are
+                  declared.
+                </>
+              ) as unknown as string,
+              lang,
             )}
           </p>
           <p>
             {t(
               "100% सटीक दैनिक अपडेट, ऐतिहासिक चार्ट और 100+ राष्ट्रीय व क्षेत्रीय बाजारों की जानकारी, पूरी तरह मुफ्त पाएं।",
               "Get 100% accurate daily updates, historical charts, and insights for over 100+ national and regional markets, completely free.",
-              lang
+              lang,
             )}
           </p>
         </div>
@@ -578,10 +681,18 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
         {/* CTA */}
         <div className="sa opacity-0 translate-y-8 bg-yellow-200 border-2 border-black rounded-2xl p-5 md:p-6 text-center shadow-[5px_5px_0_#171717]">
           <p className="text-lg md:text-xl font-black text-black">
-            {t("अपना गेम यहाँ एडवरटाइज़ करें", "ADVERTISE YOUR GAME HERE", lang)}
+            {t(
+              "अपना गेम यहाँ एडवरटाइज़ करें",
+              "ADVERTISE YOUR GAME HERE",
+              lang,
+            )}
           </p>
           <p className="text-sm text-neutral-800 mt-1">
-            {t("SattaOnlineResult.com पर अपने गेम को फीचर करने के लिए संपर्क करें", "Contact us to feature your game on SattaOnlineResult.com", lang)}
+            {t(
+              "SattaOnlineResult.com पर अपने गेम को फीचर करने के लिए संपर्क करें",
+              "Contact us to feature your game on SattaOnlineResult.com",
+              lang,
+            )}
           </p>
         </div>
 
@@ -591,7 +702,6 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
     </div>
   );
 }
-
 
 function ResultSpotlightCard({
   label,
@@ -606,26 +716,34 @@ function ResultSpotlightCard({
 }) {
   const isRecent = tone === "recent";
   return (
-    <div
-      className="rounded-2xl border-2 border-black bg-white/90 p-4 shadow-[4px_4px_0_#171717]"
-    >
+    <div className="rounded-2xl border-2 border-black bg-white/90 p-4 shadow-[4px_4px_0_#171717]">
       <div className="flex items-center gap-2">
-        <span className={`h-2.5 w-2.5 rounded-full ${isRecent ? "bg-emerald-400 animate-live-pulse" : "bg-amber-400"}`} />
-        <p className={`text-[11px] font-black uppercase tracking-widest ${isRecent ? "text-emerald-700" : "text-neutral-800"}`}>
+        <span
+          className={`h-2.5 w-2.5 rounded-full ${isRecent ? "bg-emerald-400 animate-live-pulse" : "bg-amber-400"}`}
+        />
+        <p
+          className={`text-[11px] font-black uppercase tracking-widest ${isRecent ? "text-emerald-700" : "text-neutral-800"}`}
+        >
           {label}
         </p>
       </div>
       {game ? (
         <div className="mt-2 flex items-end justify-between gap-3">
           <div className="min-w-0">
-            <p className="truncate text-base font-black uppercase text-black">{game.name}</p>
+            <p className="truncate text-base font-black uppercase text-black">
+              {game.name}
+            </p>
           </div>
-          <div className={`font-mono text-3xl font-black ${isRecent ? "text-emerald-700" : "text-black"}`}>
+          <div
+            className={`font-mono text-3xl font-black ${isRecent ? "text-emerald-700" : "text-black"}`}
+          >
             {isRecent ? game.today : "XX"}
           </div>
         </div>
       ) : (
-        <p className="mt-3 text-sm font-semibold text-neutral-700">{emptyText}</p>
+        <p className="mt-3 text-sm font-semibold text-neutral-700">
+          {emptyText}
+        </p>
       )}
     </div>
   );
@@ -636,10 +754,14 @@ function ordinalSuffix(n: number): string {
   const v = n % 100;
   if (v >= 11 && v <= 13) return "th";
   switch (n % 10) {
-    case 1: return "st";
-    case 2: return "nd";
-    case 3: return "rd";
-    default: return "th";
+    case 1:
+      return "st";
+    case 2:
+      return "nd";
+    case 3:
+      return "rd";
+    default:
+      return "th";
   }
 }
 
@@ -688,9 +810,7 @@ function GameCardSection({
             )}
           </h2>
 
-          <p className="text-xs text-gray-500">
-            {subtitle}
-          </p>
+          <p className="text-xs text-gray-500">{subtitle}</p>
         </div>
 
         <div
@@ -705,32 +825,24 @@ function GameCardSection({
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-yellow-200 text-black">
-              <th className="border border-black px-3 py-3 text-left">
-                Game
-              </th>
+              <th className="border border-black px-3 py-3 text-left">Game</th>
 
               <th className="border border-black px-3 py-2 text-center">
                 <div>Yesterday</div>
-                
               </th>
 
               <th className="border border-black px-3 py-2 text-center">
                 <div>Today</div>
-               
               </th>
             </tr>
           </thead>
 
           <tbody>
             {games.map((game, i) => {
-              const slug = game.name
-                .toLowerCase()
-                .replace(/\s+/g, "-");
+              const slug = game.name.toLowerCase().replace(/\s+/g, "-");
 
               const hasResult =
-                game.today &&
-                game.today !== "XX" &&
-                game.today !== "--";
+                game.today && game.today !== "XX" && game.today !== "--";
 
               return (
                 <tr
@@ -742,7 +854,9 @@ function GameCardSection({
                     <div className="font-black uppercase text-sm md:text-base leading-none">
                       {game.name}
                     </div>
-                    <div className="text-[10px] text-black leading-none mt-1">{game.time}</div>
+                    <div className="text-[10px] text-black leading-none mt-1">
+                      {game.time}
+                    </div>
                     <Link
                       href={`/chart/${slug}`}
                       className="inline-block text-[10px] font-bold text-yellow-700 hover:text-yellow-900 leading-none mt-0.5"
@@ -785,7 +899,13 @@ function GameCardSection({
 }
 // ─── SK24 Charts Section ───
 
-function SK24ChartsSection({ tables, lang }: { tables: SK24ChartTable[]; lang: "hi" | "en" }) {
+function SK24ChartsSection({
+  tables,
+  lang,
+}: {
+  tables: SK24ChartTable[];
+  lang: "hi" | "en";
+}) {
   return (
     <div className="sa opacity-0 translate-y-8 space-y-6">
       <div className="flex items-center gap-2.5 md:gap-3 mb-1">
@@ -802,7 +922,10 @@ function SK24ChartsSection({ tables, lang }: { tables: SK24ChartTable[]; lang: "
         </div>
       </div>
       {tables.map((table, idx) => (
-        <div key={idx} className="bg-white rounded-2xl border-2 border-gray-300 overflow-hidden shadow-sm">
+        <div
+          key={idx}
+          className="bg-white rounded-2xl border-2 border-gray-300 overflow-hidden shadow-sm"
+        >
           <div className="bg-yellow-200 text-black text-center py-2.5 px-3 text-sm md:text-base font-bold">
             {table.title}
           </div>
@@ -811,7 +934,10 @@ function SK24ChartsSection({ tables, lang }: { tables: SK24ChartTable[]; lang: "
               <thead>
                 <tr className="bg-black text-yellow-100 text-xs md:text-sm uppercase">
                   {table.headers.map((h, hi) => (
-                    <th key={hi} className="py-2 px-1 md:px-3 font-semibold border border-gray-300">
+                    <th
+                      key={hi}
+                      className="py-2 px-1 md:px-3 font-semibold border border-gray-300"
+                    >
                       {h}
                     </th>
                   ))}
@@ -819,18 +945,27 @@ function SK24ChartsSection({ tables, lang }: { tables: SK24ChartTable[]; lang: "
               </thead>
               <tbody>
                 {table.rows.map((row, ri) => (
-                  <tr key={ri} className={`text-center ${ri % 2 === 0 ? "bg-white" : "bg-gray-50"}`}>
+                  <tr
+                    key={ri}
+                    className={`text-center ${ri % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
+                  >
                     {row.map((cell, ci) => (
                       <td
                         key={ci}
-                        className={`py-1.5 px-1 md:px-3 font-mono font-bold border border-gray-200 ${ci === 0 ? "text-red-500" : "text-gray-800"
-                          }`}
+                        className={`py-1.5 px-1 md:px-3 font-mono font-bold border border-gray-200 ${
+                          ci === 0 ? "text-red-500" : "text-gray-800"
+                        }`}
                       >
                         {cell || "XX"}
                       </td>
                     ))}
-                    {Array.from({ length: Math.max(0, table.headers.length - row.length) }).map((_, fi) => (
-                      <td key={`fill-${fi}`} className="py-1.5 px-1 md:px-3 font-mono font-bold border border-gray-200 text-gray-400">
+                    {Array.from({
+                      length: Math.max(0, table.headers.length - row.length),
+                    }).map((_, fi) => (
+                      <td
+                        key={`fill-${fi}`}
+                        className="py-1.5 px-1 md:px-3 font-mono font-bold border border-gray-200 text-gray-400"
+                      >
                         XX
                       </td>
                     ))}
@@ -844,7 +979,6 @@ function SK24ChartsSection({ tables, lang }: { tables: SK24ChartTable[]; lang: "
     </div>
   );
 }
-
 
 function WhatsAppContactSection({ lang, khaiwal }: any) {
   const phone = khaiwal?.whatsapp || "918708328760";
@@ -869,7 +1003,6 @@ function WhatsAppContactSection({ lang, khaiwal }: any) {
   return (
     <section className="sa opacity-0 translate-y-8">
       <div className="relative overflow-hidden rounded-3xl border-4 border-dashed border-red-500 bg-gradient-to-b from-yellow-300 via-yellow-100 to-white shadow-xl">
-
         {/* Top Header */}
         <div className="text-center px-4 pt-6 pb-3">
           <p className="text-lg md:text-xl font-black text-gray-900">
@@ -877,7 +1010,6 @@ function WhatsAppContactSection({ lang, khaiwal }: any) {
           </p>
 
           <h2 className="mt-3 text-2xl md:text-4xl font-black text-neutral-950">
-
             {name}
           </h2>
         </div>
@@ -885,7 +1017,6 @@ function WhatsAppContactSection({ lang, khaiwal }: any) {
         {/* Timing List */}
         <div className="max-w-xl mx-auto px-4 pb-5">
           <div className="bg-white/60 backdrop-blur rounded-2xl border-2 border-yellow-500 p-4">
-
             {games.map((game) => (
               <div
                 key={game.name}
@@ -896,9 +1027,7 @@ function WhatsAppContactSection({ lang, khaiwal }: any) {
                   <span>{game.name}</span>
                 </div>
 
-                <span className="font-black text-neutral-950">
-                  {game.time}
-                </span>
+                <span className="font-black text-neutral-950">{game.time}</span>
               </div>
             ))}
           </div>
@@ -910,18 +1039,14 @@ function WhatsAppContactSection({ lang, khaiwal }: any) {
             <p className="text-xs font-bold text-gray-500 uppercase">
               Jodi Rate
             </p>
-            <p className="text-2xl font-black text-yellow-700">
-              10-960
-            </p>
+            <p className="text-2xl font-black text-yellow-700">10-960</p>
           </div>
 
           <div className="bg-white border-2 border-yellow-500 rounded-2xl p-3 text-center">
             <p className="text-xs font-bold text-gray-500 uppercase">
               Haruf Rate
             </p>
-            <p className="text-2xl font-black text-yellow-700">
-              100-960
-            </p>
+            <p className="text-2xl font-black text-yellow-700">100-960</p>
           </div>
         </div>
 
@@ -968,12 +1093,8 @@ function WhatsAppContactSection({ lang, khaiwal }: any) {
             <FaWhatsapp className="text-4xl" />
 
             <div className="text-left">
-              <div className="text-xl leading-none">
-                WhatsApp
-              </div>
-              <div className="text-sm opacity-90">
-                Click To Chat
-              </div>
+              <div className="text-xl leading-none">WhatsApp</div>
+              <div className="text-sm opacity-90">Click To Chat</div>
             </div>
           </a>
         </div>
@@ -994,8 +1115,18 @@ const CHART_GAMES = [
 ];
 
 const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 function MonthlyChartSection({
@@ -1010,7 +1141,8 @@ function MonthlyChartSection({
   lang: "hi" | "en";
 }) {
   const now = new Date();
-  const currentMonthName = initialMonth || now.toLocaleString("en-US", { month: "long" });
+  const currentMonthName =
+    initialMonth || now.toLocaleString("en-US", { month: "long" });
   const currentYear = initialYear || String(now.getFullYear());
 
   const [rows, setRows] = useState<ChartRow[]>(initialRows);
@@ -1018,12 +1150,16 @@ function MonthlyChartSection({
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [chartLoading, setChartLoading] = useState(false);
 
-  const years = Array.from({ length: 12 }, (_, i) => String(now.getFullYear() - i));
+  const years = Array.from({ length: 12 }, (_, i) =>
+    String(now.getFullYear() - i),
+  );
 
   const fetchChart = async (m: string, y: string) => {
     setChartLoading(true);
     try {
-      const res = await fetch(`/api/monthly-chart?month=${m.toLowerCase()}&year=${y}`);
+      const res = await fetch(
+        `/api/monthly-chart?month=${m.toLowerCase()}&year=${y}`,
+      );
       const data = await res.json();
       if (data.success) {
         setRows(data.results || []);
@@ -1047,10 +1183,12 @@ function MonthlyChartSection({
     fetchChart(selectedMonth, y);
   };
 
-  const displayMonth = selectedMonth.charAt(0).toUpperCase() + selectedMonth.slice(1);
-  const title = lang === "hi"
-    ? `${displayMonth} ${selectedYear} मंथली चार्ट`
-    : `${displayMonth} ${selectedYear} Monthly Chart`;
+  const displayMonth =
+    selectedMonth.charAt(0).toUpperCase() + selectedMonth.slice(1);
+  const title =
+    lang === "hi"
+      ? `${displayMonth} ${selectedYear} मंथली चार्ट`
+      : `${displayMonth} ${selectedYear} Monthly Chart`;
 
   return (
     <section className="sa opacity-0 translate-y-8">
@@ -1059,37 +1197,55 @@ function MonthlyChartSection({
           <h2 className="text-lg md:text-xl font-black text-gray-900">
             {lang === "hi" ? "मंथली चार्ट" : "Monthly Chart"} {selectedYear}
           </h2>
-          <p className="text-xs text-gray-400">Delhi Bazar, Shri Ganesh, Faridabad, Gaziabad, Gali, Disawar</p>
+          <p className="text-xs text-gray-400">
+            Delhi Bazar, Shri Ganesh, Faridabad, Gaziabad, Gali, Disawar
+          </p>
         </div>
       </div>
 
       {/* Filter Dropdowns */}
       <div className="flex items-center gap-2 mb-4">
         <div className="relative">
-          <FiCalendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 pointer-events-none" />
+          <FiCalendar
+            size={14}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 pointer-events-none"
+          />
           <select
             value={selectedMonth}
             onChange={(e) => handleMonthChange(e.target.value)}
             className="bg-gray-50 border border-gray-300 rounded-xl pl-8 pr-7 py-2 text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 appearance-none cursor-pointer"
           >
             {MONTHS.map((m) => (
-              <option key={m} value={m}>{m}</option>
+              <option key={m} value={m}>
+                {m}
+              </option>
             ))}
           </select>
-          <FiChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <FiChevronDown
+            size={14}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+          />
         </div>
         <div className="relative">
-          <FiBarChart2 size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 pointer-events-none" />
+          <FiBarChart2
+            size={14}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 pointer-events-none"
+          />
           <select
             value={selectedYear}
             onChange={(e) => handleYearChange(e.target.value)}
             className="bg-gray-50 border border-gray-300 rounded-xl pl-8 pr-7 py-2 text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 appearance-none cursor-pointer"
           >
             {years.map((y) => (
-              <option key={y} value={y}>{y}</option>
+              <option key={y} value={y}>
+                {y}
+              </option>
             ))}
           </select>
-          <FiChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <FiChevronDown
+            size={14}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+          />
         </div>
         {chartLoading && (
           <div className="w-5 h-5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
@@ -1104,7 +1260,9 @@ function MonthlyChartSection({
           </div>
           <div className="p-8 text-center">
             <div className="w-8 h-8 border-3 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-gray-400 text-sm">{t("लोड हो रहा है...", "Loading...", lang)}</p>
+            <p className="text-gray-400 text-sm">
+              {t("लोड हो रहा है...", "Loading...", lang)}
+            </p>
           </div>
         </div>
       ) : rows.length > 0 ? (
@@ -1120,7 +1278,10 @@ function MonthlyChartSection({
                     {t("तारीख", "Date", lang)}
                   </th>
                   {CHART_GAMES.map((g) => (
-                    <th key={g.key} className="py-2 px-1.5 md:px-3 font-semibold border border-gray-300">
+                    <th
+                      key={g.key}
+                      className="py-2 px-1.5 md:px-3 font-semibold border border-gray-300"
+                    >
                       {g.name}
                     </th>
                   ))}
@@ -1128,7 +1289,10 @@ function MonthlyChartSection({
               </thead>
               <tbody>
                 {rows.map((row, ri) => (
-                  <tr key={ri} className={`text-center ${ri % 2 === 0 ? "bg-white" : "bg-gray-50"}`}>
+                  <tr
+                    key={ri}
+                    className={`text-center ${ri % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
+                  >
                     <td className="py-1.5 px-1.5 md:px-3 font-bold text-red-500 border border-gray-200 text-xs md:text-sm whitespace-nowrap">
                       {row.date}
                     </td>
@@ -1149,8 +1313,12 @@ function MonthlyChartSection({
       ) : (
         <div className="bg-gray-50 rounded-2xl border border-gray-200 py-12 text-center">
           <FiBarChart2 size={32} className="text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 font-medium">{t("कोई डेटा उपलब्ध नहीं", "No data available", lang)}</p>
-          <p className="text-gray-400 text-sm mt-1">{displayMonth} {selectedYear}</p>
+          <p className="text-gray-500 font-medium">
+            {t("कोई डेटा उपलब्ध नहीं", "No data available", lang)}
+          </p>
+          <p className="text-gray-400 text-sm mt-1">
+            {displayMonth} {selectedYear}
+          </p>
         </div>
       )}
     </section>
@@ -1163,17 +1331,18 @@ function SeoContent() {
   return (
     <div className="sa opacity-0 translate-y-8 bg-gray-50 rounded-2xl border border-gray-200 p-5 md:p-8 space-y-4 text-sm text-gray-600 leading-relaxed">
       <h2 className="text-xl md:text-2xl font-black text-gray-900">
-        Satta Online Result – Fast & Accurate Satta King Result, Live Chart & Record
+        Satta Online Result – Fast & Accurate Satta King Result, Live Chart &
+        Record
       </h2>
 
       <h3 className="text-lg font-bold text-gray-900">Welcome</h3>
 
       <p>
-        Welcome to SattaOnlineResult.com, your trusted destination for the latest
-        Satta King Result, Satta Online Result, Gali Result, Desawar Result,
-        Faridabad Result, and Ghaziabad Result updates. Our website is designed
-        to provide fast, accurate, and easy-to-read result information along with
-        historical charts and records in one place.
+        Welcome to SattaOnlineResult.com, your trusted destination for the
+        latest Satta King Result, Satta Online Result, Gali Result, Desawar
+        Result, Faridabad Result, and Ghaziabad Result updates. Our website is
+        designed to provide fast, accurate, and easy-to-read result information
+        along with historical charts and records in one place.
       </p>
 
       <p>
@@ -1191,8 +1360,8 @@ function SeoContent() {
       <p>
         At SattaOnlineResult.com, we focus on providing reliable result
         information in a simple format. Visitors can easily check the latest
-        Satta King Result, browse previous records, and explore historical charts
-        without confusion.
+        Satta King Result, browse previous records, and explore historical
+        charts without confusion.
       </p>
 
       <p>
@@ -1215,7 +1384,8 @@ function SeoContent() {
       <p>
         We continuously update available result information, including Gali
         Result Today, Desawar Result Today, Faridabad Result Today, Ghaziabad
-        Result Today, and other popular market results in an easy-to-read format.
+        Result Today, and other popular market results in an easy-to-read
+        format.
       </p>
 
       <h3 className="text-lg font-bold text-gray-900">
@@ -1230,8 +1400,8 @@ function SeoContent() {
 
       <p>
         From Gali Chart and Desawar Chart to Faridabad Chart, Ghaziabad Chart,
-        and old result records, every archive is arranged for convenient browsing
-        and quick access.
+        and old result records, every archive is arranged for convenient
+        browsing and quick access.
       </p>
 
       <h3 className="text-lg font-bold text-gray-900">
@@ -1295,8 +1465,8 @@ function SeoContent() {
           </h4>
           <p>
             SattaOnlineResult.com is an informational website that provides the
-            latest Satta King Results, charts, old records, and historical result
-            information in an organized format.
+            latest Satta King Results, charts, old records, and historical
+            result information in an organized format.
           </p>
         </div>
 

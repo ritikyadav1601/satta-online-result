@@ -1,13 +1,13 @@
 import {
-  getHomepageFromFirestore,
-  getMonthlyChartFromFirestore,
-  getSK24GamesFromFirestore,
-  getSK24ChartsFromFirestore,
-} from "./firebase-cache";
-import { getAdminDb } from "./firebase-admin";
+  getHomepageFromMongoDB,
+  getSK24GamesFromMongoDB,
+  getSK24ChartsFromMongoDB,
+} from "./mongodb-cache";
+import { getCustomGamesDocument } from "./custom-games-mongodb";
 import { getISTDateString } from "./utils";
 import { getKhaiwalSettings } from "./khaiwal-mongodb";
 import { getTopGamesFromMongoDB } from "./top-games-mongodb";
+import { getMonthlyChartFromTopGames } from "./top-games-mongodb";
 import type {
   GameResult,
   ChartRow,
@@ -29,14 +29,11 @@ export interface HomeData {
   topGames: SK24Game[];
 }
 
-const CUSTOM_COLLECTION = "custom_games";
-
-// Read today's custom game values + khaiwal directly from Firestore (server-side).
+// Read today's custom game values + khaiwal directly from MongoDB (server-side).
 async function getCustomGamesForDate(date: string) {
   try {
-    const snap = await getAdminDb().collection(CUSTOM_COLLECTION).doc(date).get();
-    if (!snap.exists) return { games: {} as Record<string, string>, khaiwal: null };
-    const d = snap.data() || {};
+    const d = await getCustomGamesDocument(date);
+    if (!d) return { games: {} as Record<string, string>, khaiwal: null };
     return {
       games: {
         kohlapur: d.kohlapur || "",
@@ -45,15 +42,17 @@ async function getCustomGamesForDate(date: string) {
         "palwal-city": d["palwal-city"] || "",
         "mathura-city": d["mathura-city"] || "",
       } as Record<string, string>,
-      khaiwal: d.khaiwal || null,
+      khaiwal: d.khaiwal
+        ? { name: String(d.khaiwal.name || ""), whatsapp: String(d.khaiwal.whatsapp || "") }
+        : null,
     };
   } catch (err) {
-    console.error("[home-data] custom games read failed:", (err as Error).message);
+    console.warn("[home-data] custom games read failed:", (err as Error).message);
     return { games: {} as Record<string, string>, khaiwal: null };
   }
 }
 
-// Fetch everything the homepage needs, in parallel, from Firestore (no scraping).
+// Fetch everything the homepage needs, in parallel, from MongoDB (no scraping).
 export async function getHomeData(): Promise<HomeData> {
   const now = new Date();
   const monthName = now.toLocaleString("en-US", { month: "long" }).toLowerCase();
@@ -63,10 +62,10 @@ export async function getHomeData(): Promise<HomeData> {
   const yesterday = getISTDateString(-1);
 
   const [homepage, sk24, sk24chart, chart, custom, customPrev, khaiwal, topGames] = await Promise.all([
-    getHomepageFromFirestore(),
-    getSK24GamesFromFirestore(),
-    getSK24ChartsFromFirestore(),
-    getMonthlyChartFromFirestore(monthName, year),
+    getHomepageFromMongoDB(),
+    getSK24GamesFromMongoDB(),
+    getSK24ChartsFromMongoDB(),
+    getMonthlyChartFromTopGames(monthName, year),
     getCustomGamesForDate(today),
     getCustomGamesForDate(yesterday),
     getKhaiwalSettings().catch(() => null),
@@ -76,7 +75,7 @@ export async function getHomeData(): Promise<HomeData> {
     }),
   ]);
 
-  return {
+  const response: HomeData = {
     liveResults: homepage?.live || [],
     nextResults: homepage?.next || [],
     restResults: homepage?.rest || [],
@@ -92,4 +91,5 @@ export async function getHomeData(): Promise<HomeData> {
     khaiwal: khaiwal || custom.khaiwal || null,
     topGames,
   };
+  return response;
 }

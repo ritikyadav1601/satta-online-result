@@ -4,6 +4,9 @@ import { formatBlogDate } from "@/lib/blog-data";
 import { getPublicBlogPosts } from "@/lib/blog-mongodb";
 import { SITE_DISPLAY_DOMAIN, SITE_NAME, SITE_URL } from "@/lib/site";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Satta King Blog — Result, Chart & Record Guides",
   description:

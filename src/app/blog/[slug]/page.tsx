@@ -5,12 +5,11 @@ import {
   formatBlogDate,
   type Block,
 } from "@/lib/blog-data";
-import { getPublicBlogPost, getPublicBlogPosts } from "@/lib/blog-mongodb";
+import { getPublicBlogPost } from "@/lib/blog-mongodb";
 import { SITE_DISPLAY_DOMAIN, SITE_NAME, SITE_URL } from "@/lib/site";
 
-export async function generateStaticParams() {
-  return (await getPublicBlogPosts()).map((post) => ({ slug: post.slug }));
-}
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function generateMetadata({
   params,

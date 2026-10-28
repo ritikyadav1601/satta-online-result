@@ -24,6 +24,7 @@ export default function ContactPage() {
             href={`https://wa.me/${phone}?text=${encodeURIComponent("A7 SATTA")}`}
             target="_blank"
             rel="noopener noreferrer"
+            data-wa-location="contact_card"
             className="bg-gray-50 rounded-2xl border border-gray-200 p-5 flex items-start gap-4 hover:shadow-lg hover:border-green-300 transition-all group"
           >
             <div className="p-3 rounded-xl bg-green-500 text-white shrink-0 group-hover:scale-110 transition-transform">
@@ -67,6 +68,7 @@ export default function ContactPage() {
             href={`https://wa.me/${phone}?text=${encodeURIComponent("A7 SATTA")}`}
             target="_blank"
             rel="noopener noreferrer"
+            data-wa-location="contact_cta"
             className="inline-flex items-center gap-3 bg-green-500 hover:bg-green-600 text-white font-black text-lg px-8 py-3.5 rounded-2xl shadow-xl shadow-green-500/25 transition-all hover:scale-105"
           >
             <FaWhatsapp className="w-7 h-7" />

@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
+import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
@@ -104,6 +105,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
           <WhatsAppButton />
+          <GoogleAnalytics />
         </LanguageProvider>
       </body>
     </html>

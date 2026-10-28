@@ -78,6 +78,7 @@ export function WhatsAppButton() {
         rel="noopener noreferrer"
         className="animate-float bg-green-500 hover:bg-green-600 text-white p-3.5 md:p-4 rounded-2xl shadow-xl shadow-green-500/30 transition-all hover:scale-110 block"
         aria-label="Chat on WhatsApp"
+        data-wa-location="floating_button"
       >
         <FaWhatsapp className="w-6 h-6 md:w-8 md:h-8" />
       </a>

@@ -1,7 +1,8 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { FiBookOpen, FiEdit2, FiEye, FiEyeOff, FiLoader, FiLogOut, FiPlus, FiSave, FiTrash2, FiUser, FiX } from "react-icons/fi";
+import HomepageSeoEditor from "./HomepageSeoEditor";
+import { FiBookOpen, FiSearch, FiEdit2, FiEye, FiEyeOff, FiLoader, FiLogOut, FiPlus, FiSave, FiTrash2, FiUser, FiX } from "react-icons/fi";
 
 type Session = { siteId: string; loginId: string };
 
@@ -63,7 +64,7 @@ function Login({ onSuccess }: { onSuccess: (session: Session) => void }) {
 }
 
 function Dashboard({ session, onLogout }: { session: Session; onLogout: () => void }) {
-  const [tab, setTab] = useState<"khaiwal" | "blogs">("khaiwal");
+  const [tab, setTab] = useState<"khaiwal" | "blogs" | "seo">("khaiwal");
   const [name, setName] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [loading, setLoading] = useState(true);
@@ -99,9 +100,10 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
         </div>
       </header>
       <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
-        <nav className="grid grid-cols-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm" aria-label="Admin sections">
+        <nav className="grid grid-cols-3 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm" aria-label="Admin sections">
           <button onClick={() => setTab("khaiwal")} className={`flex min-h-14 items-center justify-center gap-2 rounded-xl font-black ${tab === "khaiwal" ? "bg-yellow-200 text-black" : "text-slate-500 hover:bg-yellow-50"}`}><FiUser /> Khaiwal</button>
           <button onClick={() => setTab("blogs")} className={`flex min-h-14 items-center justify-center gap-2 rounded-xl font-black ${tab === "blogs" ? "bg-yellow-200 text-black" : "text-slate-500 hover:bg-yellow-50"}`}><FiBookOpen /> Blogs</button>
+          <button onClick={() => setTab("seo")} className={`flex min-h-14 items-center justify-center gap-2 rounded-xl font-black ${tab === "seo" ? "bg-yellow-200 text-black" : "text-slate-500 hover:bg-yellow-50"}`}><FiSearch /> <span>Homepage <span className="hidden sm:inline">SEO</span></span></button>
         </nav>
         {tab === "khaiwal" ? <section className="mt-6 rounded-[28px] border-2 border-yellow-200 bg-white p-6 shadow-sm sm:p-10">
           <h2 className="text-2xl font-black">Khaiwal details</h2>
@@ -114,7 +116,7 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
               <button disabled={saving} className="flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-black px-5 text-lg font-black text-yellow-100 transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-yellow-300 disabled:opacity-60">{saving ? <FiLoader className="animate-spin" /> : <FiSave />} {saving ? "Saving..." : "Save Khaiwal details"}</button>
             </form>
           )}
-        </section> : <BlogManager siteId={session.siteId} />}
+        </section> : tab === "blogs" ? <BlogManager siteId={session.siteId} /> : <HomepageSeoEditor siteId={session.siteId} onUnauthorized={onLogout} />}
       </div>
     </main>
   );

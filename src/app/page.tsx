@@ -5,6 +5,13 @@ import { getHomeData } from "@/lib/home-data";
 import { getPublicBlogPosts } from "@/lib/blog-mongodb";
 import { formatBlogDate } from "@/lib/blog-data";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { getHomepageSeo, fillSeoPlaceholders } from "@/lib/homepage-seo";
+import {
+  DEFAULT_CONTENT_HTML,
+  DEFAULT_FAQS,
+  DEFAULT_META_DESCRIPTION,
+  DEFAULT_META_TITLE,
+} from "@/lib/homepage-seo-defaults";
 
 // Results must be read afresh when a visitor reloads the homepage.
 // Live updates after the initial render are handled by HomeClient.
@@ -20,33 +27,74 @@ function getIndiaDate(): string {
   }).format(new Date());
 }
 
-export async function generateMetadata(): Promise<Metadata> {
+function getIndiaYear(): string {
+  return new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", year: "numeric" }).format(new Date());
+}
+
+// Homepage SEO from the admin panel, with blanks filled by the defaults
+// and {date} / {year} placeholders replaced.
+async function getResolvedSeo() {
+  const seo = await getHomepageSeo();
   const date = getIndiaDate();
-  const title = `Satta Online Result ${date} | Today's Satta King Result & Charts`;
-  const description = `Check the Satta Online Result for ${date} with today's Satta King Result, Gali Result, Desawar Result, Faridabad Result, Ghaziabad Result, historical charts, and old records on SattaOnlineResult.com.`;
+  const year = getIndiaYear();
+  const fill = (text: string) => fillSeoPlaceholders(text, date, year);
+
+  const title = fill(seo.metaTitle || DEFAULT_META_TITLE);
+  const description = fill(seo.metaDescription || DEFAULT_META_DESCRIPTION);
+  return {
+    date,
+    title,
+    description,
+    keywords: seo.keywords
+      .split(",")
+      .map((k) => k.trim())
+      .filter(Boolean),
+    ogTitle: fill(seo.ogTitle) || title,
+    ogDescription: fill(seo.ogDescription) || description,
+    ogImage: seo.ogImage,
+    robotsIndex: seo.robotsIndex,
+    contentHtml: fill(seo.contentHtml || DEFAULT_CONTENT_HTML),
+    faqs: (seo.faqs.length ? seo.faqs : DEFAULT_FAQS).map((f) => ({
+      question: fill(f.question),
+      answer: fill(f.answer),
+    })),
+  };
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getResolvedSeo();
 
   return {
     // Absolute prevents the root title template from appending the site name.
-    title: { absolute: title },
-    description,
+    title: { absolute: seo.title },
+    description: seo.description,
+    ...(seo.keywords.length ? { keywords: seo.keywords } : {}),
+    robots: { index: seo.robotsIndex, follow: true },
     alternates: { canonical: SITE_URL },
     openGraph: {
       type: "website",
       locale: "en_IN",
       url: SITE_URL,
       siteName: SITE_NAME,
-      title,
-      description,
+      title: seo.ogTitle,
+      description: seo.ogDescription,
+      ...(seo.ogImage ? { images: [{ url: seo.ogImage }] } : {}),
+    },
+    twitter: {
+      card: seo.ogImage ? "summary_large_image" : "summary",
+      title: seo.ogTitle,
+      description: seo.ogDescription,
+      ...(seo.ogImage ? { images: [seo.ogImage] } : {}),
     },
   };
 }
 
 export default async function HomePage() {
-  const [initialData, posts] = await Promise.all([
+  const [initialData, posts, seo] = await Promise.all([
     getHomeData(),
     getPublicBlogPosts(),
+    getResolvedSeo(),
   ]);
-  const date = getIndiaDate();
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -59,38 +107,18 @@ export default async function HomePage() {
       },
       {
         "@type": "FAQPage",
-        mainEntity: [
-          {
-            "@type": "Question",
-            name: "What is SattaOnlineResult.com?",
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: "SattaOnlineResult.com is an informational website providing Satta King Results, charts, old records, and historical result information in an organized format.",
-            },
-          },
-          {
-            "@type": "Question",
-            name: "How often are Satta King Results updated?",
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: "Result information is updated regularly whenever the latest publicly available updates become available.",
-            },
-          },
-          {
-            "@type": "Question",
-            name: "Can I check old Satta charts on this website?",
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: "Yes. Visitors can browse historical charts, previous records, and archived result information through dedicated chart sections.",
-            },
-          },
-        ],
+        mainEntity: seo.faqs.map((f) => ({
+          "@type": "Question",
+          name: f.question,
+          acceptedAnswer: { "@type": "Answer", text: f.answer },
+        })),
       },
       {
         "@type": "WebPage",
         "@id": `${SITE_URL}/#webpage`,
         url: SITE_URL,
-        name: `Satta Online Result ${date}`,
+        name: seo.title,
+        description: seo.description,
         isPartOf: { "@id": `${SITE_URL}/#website` },
       },
     ],
@@ -98,7 +126,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <HomeClient initialData={initialData} />
+      <HomeClient initialData={initialData} seoHtml={seo.contentHtml} seoFaqs={seo.faqs} />
       {posts.length > 0 && (
         <section className="border-t-4 border-black bg-[#fffdf0] px-4 py-10 md:py-14" aria-labelledby="latest-blogs-title">
           <div className="mx-auto max-w-7xl">

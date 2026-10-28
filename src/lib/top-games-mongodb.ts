@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 import { getISTDateString } from "./utils";
 import { getTopGamesDatabase } from "./top-games-database";
-import type { ChartRow, MonthlyChartData, SK24Game } from "./types";
+import type { ChartRow, GameChartData, MonthlyChartData, SK24Game } from "./types";
 
 const topGameDefinitions = [
   { name: "SADAR BAZAR", time: "01:39 PM", aliases: ["sadar bazar"] },
@@ -49,6 +49,84 @@ function currentIstMinutes(date = new Date()) {
   }).formatToParts(date);
   const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
   return Number(values.hour) * 60 + Number(values.minute);
+}
+
+// Month-wise chart for a "top games" board entry (Sadar Bazar, Gwalior,
+// Delhi Bazar, Delhi Matka, Shri Ganesh, Agra, Alwar, Dwarka, etc.).
+//
+// These games only exist in this MongoDB (added via topGameDefinitions);
+// they have no MongoDB chart cache and no page on the third-party sites
+// /api/game-chart falls back to scraping, so their /chart/[gameCode] page
+// had nothing to show. getTopGamesFromMongoDB() above only ever reads
+// yesterday/today for the homepage widget, but `gameresults` holds a full
+// per-date history for every game here -- this reads a whole month of it.
+export async function getTopGameChartFromMongoDB(
+  gameCode: string,
+  monthName?: string,
+  yearStr?: string,
+): Promise<GameChartData | null> {
+  const definition = topGameDefinitions.find((def) =>
+    [def.name, ...def.aliases].some((n) => normalizeName(n) === normalizeName(gameCode)),
+  );
+  if (!definition) return null;
+
+  const database = await getTopGamesDatabase();
+  const games = await database
+    .collection<GameDocument>("games")
+    .find({ isActive: { $ne: false } })
+    .toArray();
+
+  const gamesByName = new Map(games.map((game) => [normalizeName(String(game.name || "")), game]));
+  const match = definition.aliases
+    .map(normalizeName)
+    .map((alias) => gamesByName.get(alias))
+    .find(Boolean);
+  if (!match) return null;
+
+  const monthNames = [
+    "january", "february", "march", "april", "may", "june",
+    "july", "august", "september", "october", "november", "december",
+  ];
+  const now = new Date();
+  const parsedMonthIndex = monthName ? monthNames.indexOf(monthName.toLowerCase()) : -1;
+  const monthIndex = parsedMonthIndex >= 0 ? parsedMonthIndex : now.getMonth();
+  const year = yearStr ? parseInt(yearStr, 10) : now.getFullYear();
+
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const startStr = `${year}-${pad(monthIndex + 1)}-01`;
+  const endStr = `${year}-${pad(monthIndex + 1)}-${pad(daysInMonth)}`;
+
+  const monthResults = await database
+    .collection<ResultDocument>("gameresults")
+    .find({ game: match._id, resultDate: { $gte: startStr, $lte: endStr } })
+    .toArray();
+
+  const resultByDate = new Map(monthResults.map((r) => [r.resultDate, r]));
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+  const results = Array.from({ length: daysInMonth }, (_, i) => {
+    const day = i + 1;
+    const dateObj = new Date(year, monthIndex, day);
+    const dateStr = `${year}-${pad(monthIndex + 1)}-${pad(day)}`;
+    return {
+      date: pad(day),
+      day: dayNames[dateObj.getDay()],
+      result: cleanResult(resultByDate.get(dateStr)?.result),
+    };
+  });
+
+  const monthTitle = monthNames[monthIndex].charAt(0).toUpperCase() + monthNames[monthIndex].slice(1);
+
+  return {
+    gameName: definition.name,
+    chartTitle: `${definition.name} - ${monthTitle} ${year}`,
+    month: monthTitle,
+    year: String(year),
+    columns: ["Date", "Day", "Result"],
+    results,
+    scrapedAt: Date.now(),
+  };
 }
 
 export async function getTopGamesFromMongoDB(): Promise<SK24Game[]> {

@@ -14,6 +14,9 @@ export type HomepageSeo = {
   ogDescription: string;
   ogImage: string;
   robotsIndex: boolean;
+  heroTitle: string; // homepage H1, e.g. "Satta Online Result {year}"
+  heroHighlight: string; // black badge text after the H1, e.g. "Live Results"
+  heroSubtitle: string; // line under the H1
   contentHtml: string; // rendered at the bottom of the homepage
   faqs: SeoFaq[]; // used for FAQPage JSON-LD (and shown under the content)
   updatedAt?: string;
@@ -27,6 +30,9 @@ export const EMPTY_HOMEPAGE_SEO: HomepageSeo = {
   ogDescription: "",
   ogImage: "",
   robotsIndex: true,
+  heroTitle: "",
+  heroHighlight: "",
+  heroSubtitle: "",
   contentHtml: "",
   faqs: [],
 };
@@ -56,6 +62,9 @@ export function normalizeHomepageSeo(input: Partial<HomepageSeo> | null | undefi
     ogDescription: str(d.ogDescription, 1000),
     ogImage: str(d.ogImage, 1000),
     robotsIndex: d.robotsIndex !== false,
+    heroTitle: str(d.heroTitle, 300),
+    heroHighlight: str(d.heroHighlight, 100),
+    heroSubtitle: str(d.heroSubtitle, 1000),
     contentHtml: cleanHtml(str(d.contentHtml, 300000)),
     faqs: faqs
       .map((f) => ({ question: str(f?.question, 500), answer: str(f?.answer, 5000) }))

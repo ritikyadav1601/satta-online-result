@@ -53,6 +53,12 @@ async function getResolvedSeo() {
     ogDescription: fill(seo.ogDescription) || description,
     ogImage: seo.ogImage,
     robotsIndex: seo.robotsIndex,
+    // Empty = HomeClient keeps its built-in Hindi/English defaults.
+    hero: {
+      title: fill(seo.heroTitle),
+      highlight: fill(seo.heroHighlight),
+      subtitle: fill(seo.heroSubtitle),
+    },
     contentHtml: fill(seo.contentHtml || DEFAULT_CONTENT_HTML),
     faqs: (seo.faqs.length ? seo.faqs : DEFAULT_FAQS).map((f) => ({
       question: fill(f.question),
@@ -126,7 +132,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <HomeClient initialData={initialData} seoHtml={seo.contentHtml} seoFaqs={seo.faqs} />
+      <HomeClient initialData={initialData} seoHtml={seo.contentHtml} seoFaqs={seo.faqs} hero={seo.hero} />
       {posts.length > 0 && (
         <section className="border-t-4 border-black bg-[#fffdf0] px-4 py-10 md:py-14" aria-labelledby="latest-blogs-title">
           <div className="mx-auto max-w-7xl">

@@ -5,6 +5,9 @@ import type { HomepageSeo, SeoFaq } from "@/lib/homepage-seo";
 import {
   DEFAULT_CONTENT_HTML,
   DEFAULT_FAQS,
+  DEFAULT_HERO_HIGHLIGHT,
+  DEFAULT_HERO_SUBTITLE,
+  DEFAULT_HERO_TITLE,
   DEFAULT_META_DESCRIPTION,
   DEFAULT_META_TITLE,
 } from "@/lib/homepage-seo-defaults";
@@ -17,6 +20,9 @@ const EMPTY: HomepageSeo = {
   ogDescription: "",
   ogImage: "",
   robotsIndex: true,
+  heroTitle: "",
+  heroHighlight: "",
+  heroSubtitle: "",
   contentHtml: "",
   faqs: [],
 };
@@ -193,6 +199,36 @@ export default function HomepageSeoEditor({ siteId, onUnauthorized }: { siteId: 
           <p className="text-xs text-gray-600">www.sattaonlineresult.com</p>
           <p className="text-[#1a0dab] text-lg leading-snug truncate">{shownTitle}</p>
           <p className="text-sm text-gray-700 line-clamp-2">{shownDesc}</p>
+        </div>
+      </section>
+
+      {/* ===== HERO / H1 ===== */}
+      <section className="rounded-[28px] border-2 border-yellow-200 bg-white p-6 sm:p-8 shadow-sm space-y-4">
+        <h2 className="font-black text-lg">🏷️ Homepage Heading (H1)</h2>
+        <p className="text-sm text-gray-500 -mt-2">
+          The big heading at the top of the homepage. Empty = current default (shown in Hindi/English per the
+          visitor&apos;s language). Custom text is shown the same in both languages.
+        </p>
+        <div>
+          <label className="font-semibold">Main Heading (H1)</label>
+          <input value={seo.heroTitle} onChange={(e) => set("heroTitle", e.target.value)} placeholder={DEFAULT_HERO_TITLE} className={input} />
+        </div>
+        <div>
+          <label className="font-semibold">Highlighted text (black badge)</label>
+          <input value={seo.heroHighlight} onChange={(e) => set("heroHighlight", e.target.value)} placeholder={DEFAULT_HERO_HIGHLIGHT} className={input} />
+        </div>
+        <div>
+          <label className="font-semibold">Subheading</label>
+          <textarea value={seo.heroSubtitle} onChange={(e) => set("heroSubtitle", e.target.value)} placeholder={DEFAULT_HERO_SUBTITLE} rows={2} className={input} />
+        </div>
+        {/* Preview */}
+        <div className="rounded-xl border-2 border-black bg-gradient-to-br from-yellow-50 via-yellow-100 to-yellow-200 p-5 text-center">
+          <p className="text-xs font-bold text-gray-500 mb-2 text-left">PREVIEW</p>
+          <p className="text-2xl font-black tracking-tight">
+            {previewText(seo.heroTitle || DEFAULT_HERO_TITLE)}{" "}
+            <span className="inline-block rounded-lg bg-black px-2 text-yellow-100">{previewText(seo.heroHighlight || DEFAULT_HERO_HIGHLIGHT)}</span>
+          </p>
+          <p className="mt-2 text-sm font-medium text-neutral-800">{previewText(seo.heroSubtitle || DEFAULT_HERO_SUBTITLE)}</p>
         </div>
       </section>
 

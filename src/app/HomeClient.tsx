@@ -192,10 +192,12 @@ export default function HomeClient({
   initialData,
   seoHtml,
   seoFaqs,
+  hero,
 }: {
   initialData: HomeData;
   seoHtml: string;
   seoFaqs: SeoFaq[];
+  hero?: { title: string; highlight: string; subtitle: string };
 }) {
   // Server data makes the first paint fast; this state is refreshed every 10s.
   const [homeData, setHomeData] = useState<HomeData>(initialData);
@@ -527,19 +529,20 @@ export default function HomeClient({
           </span>
         </div>
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-2">
-          Satta Online Result {format(new Date(), "yyyy")}
+          {hero?.title || `Satta Online Result ${format(new Date(), "yyyy")}`}
           <br className="md:hidden" />
           <span className="inline-block rounded-lg bg-black px-2 text-yellow-100">
             {" "}
-            {t("लाइव रिजल्ट", "Live Results", lang)}
+            {hero?.highlight || t("लाइव रिजल्ट", "Live Results", lang)}
           </span>
         </h1>
         <p className="text-neutral-800 font-medium text-sm md:text-base max-w-2xl mx-auto">
-          {t(
-            "सबसे तेज़ A7 सट्टा रिजल्ट अपडेट। गली, देसावर, गाज़ियाबाद, फरीदाबाद और 100+ गेम्स।",
-            "Fastest A7 Satta result updates. Gali, Desawar, Ghaziabad, Faridabad & 100+ games.",
-            lang,
-          )}
+          {hero?.subtitle ||
+            t(
+              "सबसे तेज़ A7 सट्टा रिजल्ट अपडेट। गली, देसावर, गाज़ियाबाद, फरीदाबाद और 100+ गेम्स।",
+              "Fastest A7 Satta result updates. Gali, Desawar, Ghaziabad, Faridabad & 100+ games.",
+              lang,
+            )}
         </p>
         <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto text-left">
           <ResultSpotlightCard

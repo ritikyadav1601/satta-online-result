@@ -7,6 +7,13 @@ export const DEFAULT_META_TITLE = "Satta Online Result {date} | Today's Satta Ki
 export const DEFAULT_META_DESCRIPTION =
   "Check the Satta Online Result for {date} with today's Satta King Result, Gali Result, Desawar Result, Faridabad Result, Ghaziabad Result, historical charts, and old records on SattaOnlineResult.com.";
 
+// Homepage heading (hero). When left empty in the admin panel, the homepage
+// keeps its built-in Hindi/English versions of these.
+export const DEFAULT_HERO_TITLE = "Satta Online Result {year}";
+export const DEFAULT_HERO_HIGHLIGHT = "Live Results";
+export const DEFAULT_HERO_SUBTITLE =
+  "Fastest A7 Satta result updates. Gali, Desawar, Ghaziabad, Faridabad & 100+ games.";
+
 export const DEFAULT_FAQS: SeoFaq[] = [
   {
     question: "What is SattaOnlineResult.com?",

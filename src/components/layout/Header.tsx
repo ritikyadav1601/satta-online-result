@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
@@ -27,22 +26,7 @@ export function Header() {
   return (
     <header className="bg-black text-white shadow-lg border-b-2 border-black">
       <div className="max-w-7xl mx-auto px-0 md:px-4">
-        <div className="flex flex-col md:h-20 md:flex-row md:items-center md:justify-between">
-          <Link
-            href="/"
-            className="block w-full md:w-auto"
-            aria-label="Satta Online Result home"
-          >
-            <Image
-              src="/logo-header.png"
-              alt="Satta Online Result"
-              width={1942}
-              height={809}
-              priority
-              className="h-28 w-full object-cover md:h-20 md:w-[430px]"
-            />
-          </Link>
-
+        <div className="flex flex-col md:h-16 md:flex-row md:items-center md:justify-center">
           {/* Desktop navigation */}
           <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
             {NAV_LINKS.map((link) => {

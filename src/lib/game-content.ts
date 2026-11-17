@@ -35,6 +35,8 @@ const KNOWN_GAME_NAMES: Record<string, string> = {
   "up-bazar": "UP Bazar",
   "palwal-city": "Palwal City",
   "mathura-city": "Mathura City",
+  "shivpuri": "Shivpuri",
+  "janakpuri": "Janakpuri",
 };
 
 export function getGameDisplayName(slug: string): string {

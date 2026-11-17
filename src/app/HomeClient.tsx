@@ -216,6 +216,7 @@ export default function HomeClient({
     customGamesYesterday,
     khaiwal,
     topGames: mongoTopGames,
+    extraGames = [],
   } = homeData;
 
   useEffect(() => {
@@ -638,7 +639,18 @@ export default function HomeClient({
               icon={<FiZap size={18} />}
               headerBg="bg-yellow-400"
               accentColor="text-yellow-700"
-              games={externalGames}
+              games={[
+                // Shivpuri + Janakpuri (admin-entered) always sit at the top.
+                ...extraGames,
+                ...externalGames.filter(
+                  (game) =>
+                    !extraGames.some(
+                      (extra) =>
+                        extra.name.toLowerCase().replace(/[^a-z0-9]/g, "") ===
+                        game.name.toLowerCase().replace(/[^a-z0-9]/g, ""),
+                    ),
+                ),
+              ]}
               isLive
               lang={lang}
             />

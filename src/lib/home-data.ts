@@ -4,6 +4,7 @@ import {
   getSK24ChartsFromMongoDB,
 } from "./mongodb-cache";
 import { getCustomGamesDocument } from "./custom-games-mongodb";
+import { EXTRA_GAMES, getExtraGamesDocument } from "./extra-games-mongodb";
 import { getISTDateString } from "./utils";
 import { getKhaiwalSettings } from "./khaiwal-mongodb";
 import { getTopGamesFromMongoDB } from "./top-games-mongodb";
@@ -27,6 +28,7 @@ export interface HomeData {
   customGamesYesterday: Record<string, string>;
   khaiwal: { name: string; whatsapp: string } | null;
   topGames: SK24Game[];
+  extraGames: SK24Game[];
 }
 
 // Read today's custom game values + khaiwal directly from MongoDB (server-side).
@@ -52,6 +54,26 @@ async function getCustomGamesForDate(date: string) {
   }
 }
 
+// Shivpuri / Janakpuri: admin-entered results (today + yesterday, IST).
+async function getExtraGames(today: string, yesterday: string): Promise<SK24Game[]> {
+  try {
+    const [todayDoc, yesterdayDoc] = await Promise.all([
+      getExtraGamesDocument(today),
+      getExtraGamesDocument(yesterday),
+    ]);
+    return EXTRA_GAMES.map((game) => ({
+      name: game.name,
+      time: game.time,
+      yesterday: yesterdayDoc?.[game.key] || "XX",
+      today: todayDoc?.[game.key] || "XX",
+      updatedAt: todayDoc?.[`${game.key}UpdatedAt`] || null,
+    }));
+  } catch (err) {
+    console.warn("[home-data] extra games read failed:", (err as Error).message);
+    return EXTRA_GAMES.map((game) => ({ name: game.name, time: game.time, yesterday: "XX", today: "XX" }));
+  }
+}
+
 // Fetch everything the homepage needs, in parallel, from MongoDB (no scraping).
 export async function getHomeData(): Promise<HomeData> {
   const now = new Date();
@@ -61,7 +83,7 @@ export async function getHomeData(): Promise<HomeData> {
   const today = getISTDateString(0);
   const yesterday = getISTDateString(-1);
 
-  const [homepage, sk24, sk24chart, chart, custom, customPrev, khaiwal, topGames] = await Promise.all([
+  const [homepage, sk24, sk24chart, chart, custom, customPrev, khaiwal, topGames, extraGames] = await Promise.all([
     getHomepageFromMongoDB(),
     getSK24GamesFromMongoDB(),
     getSK24ChartsFromMongoDB(),
@@ -73,6 +95,7 @@ export async function getHomeData(): Promise<HomeData> {
       console.error("[home-data] top games MongoDB read failed:", (error as Error).message);
       return [];
     }),
+    getExtraGames(today, yesterday),
   ]);
 
   const response: HomeData = {
@@ -90,6 +113,7 @@ export async function getHomeData(): Promise<HomeData> {
     customGamesYesterday: customPrev.games || {},
     khaiwal: khaiwal || custom.khaiwal || null,
     topGames,
+    extraGames,
   };
   return response;
 }

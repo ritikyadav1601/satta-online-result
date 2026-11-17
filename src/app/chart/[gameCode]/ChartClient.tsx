@@ -22,6 +22,8 @@ function getDayOfMonth(date: string): string {
 
 // Custom games use a separate API.
 const CUSTOM_GAME_KEYS = ["kohlapur", "manipur", "up-bazar", "palwal-city", "mathura-city"];
+// Admin-managed extra games (Shivpuri, Janakpuri) have their own chart API.
+const EXTRA_GAME_KEYS = ["shivpuri", "janakpuri"];
 
 export function ChartClient({
   gameCode,
@@ -46,6 +48,7 @@ export function ChartClient({
   const [skippedInitialFetch, setSkippedInitialFetch] = useState(false);
 
   const isCustomGame = CUSTOM_GAME_KEYS.includes(gameCode);
+  const isExtraGame = EXTRA_GAME_KEYS.includes(gameCode);
 
   const fetchChart = async (date: Date) => {
     setLoading(true);
@@ -57,7 +60,9 @@ export function ChartClient({
     const y = String(date.getFullYear());
 
     try {
-      const url = isCustomGame
+      const url = isExtraGame
+        ? `/api/extra-games/chart?game=${gameCode}&month=${date.getMonth() + 1}&year=${y}`
+        : isCustomGame
         ? `/api/custom-games/chart?game=${gameCode}&month=${date.getMonth() + 1}&year=${y}`
         : `/api/game-chart?slug=${gameCode}&month=${m}&year=${y}`;
       const res = await fetch(url);
@@ -90,6 +95,11 @@ export function ChartClient({
 
   useEffect(() => {
     const findTime = async () => {
+      const extraTimes: Record<string, string> = { shivpuri: "04:15 PM", janakpuri: "08:15 PM" };
+      if (extraTimes[gameCode]) {
+        setResultTime(extraTimes[gameCode]);
+        return;
+      }
       try {
         const endpoints = ["/api/live-results", "/api/next-results", "/api/rest-results"];
         for (const url of endpoints) {

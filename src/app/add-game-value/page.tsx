@@ -2,7 +2,8 @@
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import HomepageSeoEditor from "./HomepageSeoEditor";
-import { FiBookOpen, FiSearch, FiEdit2, FiEye, FiEyeOff, FiLoader, FiLogOut, FiPlus, FiSave, FiTrash2, FiUser, FiX } from "react-icons/fi";
+import ExtraGamesEditor from "./ExtraGamesEditor";
+import { FiBookOpen, FiHash, FiSearch, FiEdit2, FiEye, FiEyeOff, FiLoader, FiLogOut, FiPlus, FiSave, FiTrash2, FiUser, FiX } from "react-icons/fi";
 
 type Session = { siteId: string; loginId: string };
 
@@ -64,7 +65,7 @@ function Login({ onSuccess }: { onSuccess: (session: Session) => void }) {
 }
 
 function Dashboard({ session, onLogout }: { session: Session; onLogout: () => void }) {
-  const [tab, setTab] = useState<"khaiwal" | "blogs" | "seo">("khaiwal");
+  const [tab, setTab] = useState<"results" | "khaiwal" | "blogs" | "seo">("results");
   const [name, setName] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [loading, setLoading] = useState(true);
@@ -100,12 +101,13 @@ function Dashboard({ session, onLogout }: { session: Session; onLogout: () => vo
         </div>
       </header>
       <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
-        <nav className="grid grid-cols-3 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm" aria-label="Admin sections">
+        <nav className="grid grid-cols-2 sm:grid-cols-4 gap-1 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm" aria-label="Admin sections">
+          <button onClick={() => setTab("results")} className={`flex min-h-14 items-center justify-center gap-2 rounded-xl font-black ${tab === "results" ? "bg-yellow-200 text-black" : "text-slate-500 hover:bg-yellow-50"}`}><FiHash /> Results</button>
           <button onClick={() => setTab("khaiwal")} className={`flex min-h-14 items-center justify-center gap-2 rounded-xl font-black ${tab === "khaiwal" ? "bg-yellow-200 text-black" : "text-slate-500 hover:bg-yellow-50"}`}><FiUser /> Khaiwal</button>
           <button onClick={() => setTab("blogs")} className={`flex min-h-14 items-center justify-center gap-2 rounded-xl font-black ${tab === "blogs" ? "bg-yellow-200 text-black" : "text-slate-500 hover:bg-yellow-50"}`}><FiBookOpen /> Blogs</button>
           <button onClick={() => setTab("seo")} className={`flex min-h-14 items-center justify-center gap-2 rounded-xl font-black ${tab === "seo" ? "bg-yellow-200 text-black" : "text-slate-500 hover:bg-yellow-50"}`}><FiSearch /> <span>Homepage <span className="hidden sm:inline">SEO</span></span></button>
         </nav>
-        {tab === "khaiwal" ? <section className="mt-6 rounded-[28px] border-2 border-yellow-200 bg-white p-6 shadow-sm sm:p-10">
+        {tab === "results" ? <ExtraGamesEditor onUnauthorized={onLogout} /> : tab === "khaiwal" ? <section className="mt-6 rounded-[28px] border-2 border-yellow-200 bg-white p-6 shadow-sm sm:p-10">
           <h2 className="text-2xl font-black">Khaiwal details</h2>
           <p className="mt-2 text-sm text-slate-500">These details are saved only for <strong>{session.siteId}</strong>.</p>
           {loading ? <div className="grid min-h-52 place-items-center"><FiLoader className="animate-spin text-2xl text-amber-600" /></div> : (

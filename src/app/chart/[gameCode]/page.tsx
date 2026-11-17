@@ -6,6 +6,8 @@ import { ChartClient } from "./ChartClient";
 
 // Custom games use a separate API from the scraped/Firestore-backed games.
 const CUSTOM_GAME_KEYS = ["kohlapur", "manipur", "up-bazar", "palwal-city", "mathura-city"];
+// Admin-managed extra games (Shivpuri, Janakpuri) have their own chart API.
+const EXTRA_GAME_KEYS = ["shivpuri", "janakpuri"];
 
 const MONTH_NAMES = [
   "january", "february", "march", "april", "may", "june",
@@ -27,9 +29,12 @@ async function getInitialChartData(gameCode: string): Promise<InitialChartData> 
   const month = MONTH_NAMES[now.getMonth()];
   const year = String(now.getFullYear());
   const isCustomGame = CUSTOM_GAME_KEYS.includes(gameCode);
+  const isExtraGame = EXTRA_GAME_KEYS.includes(gameCode);
 
   try {
-    const url = isCustomGame
+    const url = isExtraGame
+        ? `${SITE_URL}/api/extra-games/chart?game=${gameCode}&month=${now.getMonth() + 1}&year=${year}`
+        : isCustomGame
       ? `${SITE_URL}/api/custom-games/chart?game=${gameCode}&month=${now.getMonth() + 1}&year=${year}`
       : `${SITE_URL}/api/game-chart?slug=${gameCode}&month=${month}&year=${year}`;
 

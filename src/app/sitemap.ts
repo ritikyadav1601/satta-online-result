@@ -25,6 +25,8 @@ const FIXED_GAME_NAMES = [
   "agra", "faridabad", "alwar", "dwarka",
   // Custom games
   "kohlapur", "manipur", "up-bazar", "palwal-city", "mathura-city",
+  // Extra games
+  "shivpuri", "janakpuri",
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

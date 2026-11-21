@@ -14,6 +14,11 @@ export const DEFAULT_HERO_HIGHLIGHT = "Live Results";
 export const DEFAULT_HERO_SUBTITLE =
   "Fastest A7 Satta result updates. Gali, Desawar, Ghaziabad, Faridabad & 100+ games.";
 
+// Scrolling welcome bar under the header. When left empty in the admin panel,
+// the site keeps its built-in Hindi/English versions.
+export const DEFAULT_MARQUEE_TEXT =
+  "Welcome to SattaOnlineResult.com — Superfast Live A7 Satta Results • Gali, Desawar, Ghaziabad, Faridabad, Shri Ganesh, Delhi Bazar • 100+ Games • Free Monthly Chart Records 2015-{year} • Updated Every Minute";
+
 export const DEFAULT_FAQS: SeoFaq[] = [
   {
     question: "What is SattaOnlineResult.com?",

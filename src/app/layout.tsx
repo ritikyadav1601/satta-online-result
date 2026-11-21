@@ -7,6 +7,7 @@ import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { getHomepageSeo, fillSeoPlaceholders } from "@/lib/homepage-seo";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -81,11 +82,22 @@ const organizationJsonLd = {
   url: SITE_URL,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Admin-editable scrolling bar text (Admin → Homepage SEO). Empty = built-in default.
+  const seo = await getHomepageSeo();
+  const now = new Date();
+  const marqueeText = seo.marqueeText
+    ? fillSeoPlaceholders(
+        seo.marqueeText,
+        new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", day: "2-digit", month: "long", year: "numeric" }).format(now),
+        new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", year: "numeric" }).format(now),
+      )
+    : "";
+
   return (
     <html
       lang="en"
@@ -101,7 +113,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
         <LanguageProvider>
-          <Header />
+          <Header marqueeText={marqueeText} />
           <main className="flex-1">{children}</main>
           <Footer />
           <WhatsAppButton />

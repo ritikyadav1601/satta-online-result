@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/khaiwal-admin-auth";
 import { getHomepageSeo, saveHomepageSeo } from "@/lib/homepage-seo";
 
@@ -19,7 +20,10 @@ export async function PUT(request: Request) {
     if (!seo || typeof seo !== "object") {
       return Response.json({ success: false, error: "seo object is required" }, { status: 400 });
     }
-    return Response.json({ success: true, seo: await saveHomepageSeo(seo, session.siteId) });
+    const saved = await saveHomepageSeo(seo, session.siteId);
+    // The marquee bar is in the root layout, so refresh every page.
+    revalidatePath("/", "layout");
+    return Response.json({ success: true, seo: saved });
   } catch (error) {
     return Response.json({ success: false, error: (error as Error).message }, { status: 500 });
   }

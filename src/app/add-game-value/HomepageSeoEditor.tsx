@@ -8,6 +8,7 @@ import {
   DEFAULT_HERO_HIGHLIGHT,
   DEFAULT_HERO_SUBTITLE,
   DEFAULT_HERO_TITLE,
+  DEFAULT_MARQUEE_TEXT,
   DEFAULT_META_DESCRIPTION,
   DEFAULT_META_TITLE,
 } from "@/lib/homepage-seo-defaults";
@@ -23,6 +24,7 @@ const EMPTY: HomepageSeo = {
   heroTitle: "",
   heroHighlight: "",
   heroSubtitle: "",
+  marqueeText: "",
   contentHtml: "",
   faqs: [],
 };
@@ -229,6 +231,35 @@ export default function HomepageSeoEditor({ siteId, onUnauthorized }: { siteId: 
             <span className="inline-block rounded-lg bg-black px-2 text-yellow-100">{previewText(seo.heroHighlight || DEFAULT_HERO_HIGHLIGHT)}</span>
           </p>
           <p className="mt-2 text-sm font-medium text-neutral-800">{previewText(seo.heroSubtitle || DEFAULT_HERO_SUBTITLE)}</p>
+        </div>
+      </section>
+
+      {/* ===== MARQUEE BAR ===== */}
+      <section className="rounded-[28px] border-2 border-yellow-200 bg-white p-6 sm:p-8 shadow-sm space-y-4">
+        <h2 className="font-black text-lg">📢 Scrolling Welcome Bar</h2>
+        <p className="text-sm text-gray-500 -mt-2">
+          The moving text line under the top menu (shown on every page). Empty = current default (Hindi/English per
+          the visitor&apos;s language). Custom text is shown the same in both languages. You can use {"{date}"} and {"{year}"}.
+        </p>
+        <div>
+          <div className="flex items-center justify-between">
+            <label className="font-semibold">Scrolling Text</label>
+            <Counter value={seo.marqueeText || ""} max={300} />
+          </div>
+          <textarea
+            value={seo.marqueeText || ""}
+            onChange={(e) => set("marqueeText", e.target.value)}
+            placeholder={DEFAULT_MARQUEE_TEXT}
+            rows={3}
+            className={input}
+          />
+        </div>
+        {/* Preview */}
+        <div className="rounded-xl border-2 border-black bg-black p-3 overflow-hidden">
+          <p className="text-xs font-bold text-gray-400 mb-1">PREVIEW</p>
+          <p className="whitespace-nowrap overflow-hidden text-ellipsis text-xs font-bold text-yellow-100">
+            {previewText(seo.marqueeText || DEFAULT_MARQUEE_TEXT)}
+          </p>
         </div>
       </section>
 
